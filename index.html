@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 设计走查工具</title>
+    <style>
+      :root {
+        --primary: #1677ff;
+        --danger: #ff4d4f;
+        --warning: #fa8c16;
+        --low: #faad14;
+        --text: #1f2329;
+        --sub-text: #5c6470;
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --border: #e7ebf0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      .container {
+        width: min(1100px, 92vw);
+        margin: 28px auto 40px;
+      }
+
+      .title {
+        margin: 0 0 18px;
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 6px 20px rgba(15, 42, 79, 0.05);
+      }
+
+      .upload-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(240px, 1fr));
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      .upload-box {
+        border: 1px dashed #bdd5ff;
+        border-radius: 12px;
+        padding: 12px;
+        background: #f8fbff;
+      }
+
+      .upload-box h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+
+      .preview {
+        margin-top: 10px;
+        width: 100%;
+        max-height: 280px;
+        object-fit: contain;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        display: none;
+      }
+
+      .action-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .key-input {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+      }
+
+      .btn {
+        border: 0;
+        background: var(--primary);
+        color: #fff;
+        border-radius: 10px;
+        padding: 11px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        min-width: 110px;
+      }
+
+      .btn-inner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      .btn:disabled {
+        background: #94bfff;
+        cursor: not-allowed;
+      }
+
+      .status {
+        margin-top: 10px;
+        min-height: 22px;
+        color: var(--sub-text);
+        font-size: 14px;
+      }
+
+      .error {
+        margin-top: 10px;
+        white-space: pre-wrap;
+        font-size: 13px;
+        color: #9f1d1f;
+        background: #fff2f0;
+        border: 1px solid #ffccc7;
+        border-radius: 8px;
+        padding: 10px;
+        display: none;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #d7e7ff;
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        margin-right: 8px;
+        vertical-align: -2px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .result {
+        margin-top: 16px;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+
+      .result.is-dimmed {
+        opacity: 0.45;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .summary-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      .summary-label {
+        font-size: 13px;
+        color: var(--sub-text);
+      }
+
+      .summary-value {
+        margin-top: 6px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .issues {
+        display: grid;
+        gap: 12px;
+      }
+
+      .issue-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      .issue-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .badge {
+        background: var(--primary);
+        color: #fff;
+        border-radius: 999px;
+        min-width: 28px;
+        text-align: center;
+        padding: 3px 9px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .tag {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 3px 9px;
+        font-weight: 600;
+      }
+
+      .tag-type {
+        background: #eaf2ff;
+        color: #1454b8;
+      }
+
+      .issue-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 6px 0 8px;
+      }
+
+      .meta-line,
+      .desc-line {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #2f3640;
+      }
+
+      .meta-line strong,
+      .desc-line strong {
+        color: #111;
+      }
+
+      .loading-panel {
+        margin-top: 16px;
+        width: 100%;
+        background: #ffffff;
+        border: 1px solid #dbe7ff;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(22, 119, 255, 0.12);
+        padding: 24px 16px;
+        display: none;
+        text-align: center;
+      }
+
+      .loading-panel.active {
+        display: block;
+      }
+
+      .loading-spinner-lg {
+        width: 36px;
+        height: 36px;
+        border: 4px solid #d8e9ff;
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        margin: 0 auto 14px;
+        animation: spin 0.9s linear infinite;
+      }
+
+      .loading-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .loading-subtitle {
+        font-size: 14px;
+        color: var(--sub-text);
+        margin-bottom: 12px;
+      }
+
+      .loading-step {
+        display: inline-block;
+        border-radius: 999px;
+        background: #eef5ff;
+        color: #1454b8;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .error-card {
+        margin-top: 16px;
+        background: #fff2f0;
+        border: 1px solid #ffccc7;
+        border-radius: 12px;
+        box-shadow: 0 6px 16px rgba(255, 77, 79, 0.08);
+        padding: 14px;
+        display: none;
+      }
+
+      .error-card-title {
+        color: #cf1322;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .error-card-body {
+        color: #9f1d1f;
+        font-size: 13px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">AI 设计走查工具</h1>
+
+      <section class="panel">
+        <div class="upload-grid">
+          <div class="upload-box">
+            <h3>图 A：设计稿</h3>
+            <input id="designInput" type="file" accept="image/*" />
+            <img id="designPreview" class="preview" alt="设计稿预览" />
+          </div>
+          <div class="upload-box">
+            <h3>图 B：实现稿</h3>
+            <input id="actualInput" type="file" accept="image/*" />
+            <img id="actualPreview" class="preview" alt="实现稿预览" />
+          </div>
+        </div>
+
+        <div class="action-row">
+          <input
+            id="apiKeyInput"
+            class="key-input"
+            type="password"
+            placeholder="请输入 Gemini API Key（仅本次内存使用，不会保存）"
+          />
+          <button id="startBtn" class="btn">开始走查</button>
+        </div>
+
+        <div id="statusText" class="status">请上传两张图并输入 API Key。</div>
+        <div id="errorBox" class="error"></div>
+      </section>
+
+      <section class="result">
+        <div id="loadingPanel" class="loading-panel">
+          <div class="loading-spinner-lg"></div>
+          <div class="loading-title">AI 正在分析两张图...</div>
+          <div class="loading-subtitle">通常需要 10-30 秒，请耐心等待</div>
+          <div id="loadingStep" class="loading-step">正在上传图片...</div>
+        </div>
+
+        <div id="errorCard" class="error-card">
+          <div class="error-card-title">走查失败</div>
+          <div id="errorCardBody" class="error-card-body"></div>
+        </div>
+
+        <div class="summary">
+          <div class="summary-card">
+            <div class="summary-label">总差异数</div>
+            <div id="totalIssues" class="summary-value">-</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">一致性评分</div>
+            <div id="score" class="summary-value">-</div>
+          </div>
+        </div>
+        <div id="issuesList" class="issues"></div>
+      </section>
+    </div>
+
+    <script>
+      const API_URL =
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent";
+
+      const designInput = document.getElementById("designInput");
+      const actualInput = document.getElementById("actualInput");
+      const designPreview = document.getElementById("designPreview");
+      const actualPreview = document.getElementById("actualPreview");
+      const apiKeyInput = document.getElementById("apiKeyInput");
+      const startBtn = document.getElementById("startBtn");
+      const statusText = document.getElementById("statusText");
+      const errorBox = document.getElementById("errorBox");
+      const totalIssues = document.getElementById("totalIssues");
+      const score = document.getElementById("score");
+      const issuesList = document.getElementById("issuesList");
+      const loadingPanel = document.getElementById("loadingPanel");
+      const loadingStep = document.getElementById("loadingStep");
+      const resultSection = document.querySelector(".result");
+      const errorCard = document.getElementById("errorCard");
+      const errorCardBody = document.getElementById("errorCardBody");
+
+      let designFile = null;
+      let actualFile = null;
+      let loadingStepTimer = null;
+      let loadingStepIndex = 0;
+
+      const LOADING_STEPS = [
+        "正在上传图片...",
+        "AI 正在识别元素...",
+        "正在对比差异...",
+        "生成报告中...",
+      ];
+
+      const REVIEW_PROMPT = `你是资深 UI 设计走查专家。我会给你两张图：
+- 图 A 是设计稿
+- 图 B 是开发实现稿
+
+请对比这两张图，找出实现稿中与设计稿不一致的地方。
+
+请严格按以下 JSON 格式返回，不要 markdown 包裹，不要任何额外说明：
+
+{
+  "summary": {
+    "total_issues": 数字,
+    "consistency_score": 0-1 的小数（越接近 1 越一致）
+  },
+  "issues": [
+    {
+      "id": 1,
+      "type": "颜色" | "字号" | "间距" | "圆角" | "位置" | "缺失元素" | "尺寸" | "其他",
+      "severity": "高" | "中" | "低",
+      "title": "简短标题，不超过 15 字",
+      "location": "用文字描述差异在图中的大致位置，如'页面顶部 Logo 区域'",
+      "description": "详细描述差异是什么",
+      "design_value": "设计稿的具体值（如有）",
+      "actual_value": "实现稿的具体值（如有）",
+      "suggestion": "给开发的修复建议"
+    }
+  ]
+}
+
+要求：
+- 最多输出 10 条最重要的差异
+- 按严重度从高到低排序
+- 用户感知不到的差异（小于 2 像素的偏移、亚像素抗锯齿）不要报告`;
+
+      // 文件选择后更新预览图，并把 File 保存在内存变量中
+      function handleFileChange(inputEl, previewEl, kind) {
+        const file = inputEl.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          showError(`请选择图片文件（${kind}）。`);
+          return;
+        }
+        clearError();
+        const objectUrl = URL.createObjectURL(file);
+        previewEl.src = objectUrl;
+        previewEl.style.display = "block";
+        if (kind === "设计稿") designFile = file;
+        if (kind === "实现稿") actualFile = file;
+      }
+
+      designInput.addEventListener("change", () =>
+        handleFileChange(designInput, designPreview, "设计稿")
+      );
+      actualInput.addEventListener("change", () =>
+        handleFileChange(actualInput, actualPreview, "实现稿")
+      );
+
+      startBtn.addEventListener("click", async () => {
+        const apiKey = apiKeyInput.value.trim();
+        if (!designFile || !actualFile) {
+          showError("请先上传设计稿和实现稿。");
+          return;
+        }
+        if (!apiKey) {
+          showError("请先输入 Gemini API Key。");
+          return;
+        }
+
+        clearError();
+        clearErrorCard();
+        setLoading(true, "正在调用 Gemini 分析差异，请稍候...");
+        try {
+          // 1) 将两张图转成 base64 + mime 类型，作为 inline_data 上传
+          const [designImg, actualImg] = await Promise.all([
+            fileToBase64(designFile),
+            fileToBase64(actualFile),
+          ]);
+
+          // 2) 组装 Gemini generateContent 请求体
+          const requestBody = {
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  { text: REVIEW_PROMPT },
+                  { text: "图 A（设计稿）" },
+                  {
+                    inline_data: {
+                      mime_type: designImg.mimeType,
+                      data: designImg.base64,
+                    },
+                  },
+                  { text: "图 B（实现稿）" },
+                  {
+                    inline_data: {
+                      mime_type: actualImg.mimeType,
+                      data: actualImg.base64,
+                    },
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              responseMimeType: "application/json",
+            },
+          };
+
+          // 3) API Key 按要求放在 URL query 参数中
+          const url = `${API_URL}?key=${encodeURIComponent(apiKey)}`;
+          const resp = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody),
+          });
+
+          const rawText = await resp.text();
+          if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}\n${rawText}`);
+          }
+
+          // 4) 解析模型返回的 JSON 结果（兼容可能的 code fence）
+          const parsed = parseGeminiResponse(rawText);
+          renderReport(parsed);
+          setLoading(false, "走查完成。");
+          // 结果生成后平滑滚动到结果区域，提升交互体验
+          resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (err) {
+          setLoading(false, "走查失败。");
+          showError(`调用失败：${err.message}`);
+          showErrorCard(`调用失败：${err.message}`);
+        }
+      });
+
+      function setLoading(loading, text) {
+        startBtn.disabled = loading;
+        if (loading) {
+          startBtn.innerHTML =
+            '<span class="btn-inner"><span class="btn-spinner"></span>AI 走查中...</span>';
+          statusText.innerHTML = `<span class="spinner"></span>${escapeHtml(text)}`;
+          resultSection.classList.add("is-dimmed");
+          loadingPanel.classList.add("active");
+          startLoadingSteps();
+        } else {
+          startBtn.textContent = "开始走查";
+          statusText.textContent = text;
+          resultSection.classList.remove("is-dimmed");
+          loadingPanel.classList.remove("active");
+          stopLoadingSteps();
+        }
+      }
+
+      // 让动态进度文字每 3 秒轮播一次
+      function startLoadingSteps() {
+        stopLoadingSteps();
+        loadingStepIndex = 0;
+        loadingStep.textContent = LOADING_STEPS[loadingStepIndex];
+        loadingStepTimer = window.setInterval(() => {
+          loadingStepIndex = (loadingStepIndex + 1) % LOADING_STEPS.length;
+          loadingStep.textContent = LOADING_STEPS[loadingStepIndex];
+        }, 3000);
+      }
+
+      function stopLoadingSteps() {
+        if (loadingStepTimer !== null) {
+          window.clearInterval(loadingStepTimer);
+          loadingStepTimer = null;
+        }
+      }
+
+      function showError(msg) {
+        errorBox.style.display = "block";
+        errorBox.textContent = msg;
+      }
+
+      function clearError() {
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
+      }
+
+      function showErrorCard(msg) {
+        errorCard.style.display = "block";
+        errorCardBody.textContent = msg;
+      }
+
+      function clearErrorCard() {
+        errorCard.style.display = "none";
+        errorCardBody.textContent = "";
+      }
+
+      // 将图片文件转为 base64（去掉 data:image/...;base64, 前缀）
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = String(reader.result || "");
+            const commaIndex = result.indexOf(",");
+            if (commaIndex === -1) {
+              reject(new Error("图片编码失败，未找到 base64 数据。"));
+              return;
+            }
+            resolve({
+              mimeType: file.type || "image/png",
+              base64: result.slice(commaIndex + 1),
+            });
+          };
+          reader.onerror = () => reject(new Error("读取图片失败。"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // 兼容 Gemini 外层响应，并提取 text 字段中的 JSON
+      function parseGeminiResponse(rawText) {
+        let outer;
+        try {
+          outer = JSON.parse(rawText);
+        } catch (e) {
+          throw new Error(`返回不是合法 JSON：\n${rawText}`);
+        }
+
+        const modelText =
+          outer?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text || "";
+        if (!modelText) {
+          throw new Error(`未拿到模型文本内容：\n${rawText}`);
+        }
+
+        const cleanText = modelText
+          .replace(/^```json\s*/i, "")
+          .replace(/^```\s*/i, "")
+          .replace(/\s*```$/i, "")
+          .trim();
+
+        let report;
+        try {
+          report = JSON.parse(cleanText);
+        } catch (e) {
+          throw new Error(`模型返回内容不是目标 JSON：\n${modelText}`);
+        }
+
+        if (!report.summary || !Array.isArray(report.issues)) {
+          throw new Error(`JSON 缺少 summary 或 issues：\n${cleanText}`);
+        }
+
+        return report;
+      }
+
+      function renderReport(report) {
+        const issueCount = Number(report.summary.total_issues ?? report.issues.length ?? 0);
+        const scoreValue = Number(report.summary.consistency_score ?? 0);
+        totalIssues.textContent = Number.isFinite(issueCount) ? String(issueCount) : "-";
+        score.textContent = Number.isFinite(scoreValue) ? scoreValue.toFixed(2) : "-";
+
+        issuesList.innerHTML = "";
+        if (!report.issues.length) {
+          const card = document.createElement("div");
+          card.className = "issue-card";
+          card.textContent = "没有发现明显差异。";
+          issuesList.appendChild(card);
+          return;
+        }
+
+        report.issues.slice(0, 10).forEach((item, idx) => {
+          const card = document.createElement("article");
+          card.className = "issue-card";
+
+          const sevColor = getSeverityColor(item.severity);
+          card.innerHTML = `
+            <div class="issue-head">
+              <span class="badge">#${escapeHtml(String(item.id ?? idx + 1))}</span>
+              <span class="tag" style="background:${sevColor.bg};color:${sevColor.text};">严重度：${escapeHtml(
+            String(item.severity || "-")
+          )}</span>
+              <span class="tag tag-type">${escapeHtml(String(item.type || "其他"))}</span>
+            </div>
+            <div class="issue-title">${escapeHtml(String(item.title || "未命名问题"))}</div>
+            <div class="meta-line"><strong>位置：</strong>${escapeHtml(String(item.location || "-"))}</div>
+            <div class="desc-line"><strong>差异描述：</strong>${escapeHtml(
+              String(item.description || "-")
+            )}</div>
+            <div class="desc-line"><strong>设计稿值：</strong>${escapeHtml(
+              String(item.design_value || "-")
+            )}</div>
+            <div class="desc-line"><strong>实现稿值：</strong>${escapeHtml(
+              String(item.actual_value || "-")
+            )}</div>
+            <div class="desc-line"><strong>修复建议：</strong>${escapeHtml(
+              String(item.suggestion || "-")
+            )}</div>
+          `;
+
+          issuesList.appendChild(card);
+        });
+      }
+
+      function getSeverityColor(severity) {
+        if (severity === "高") {
+          return { bg: "#fff1f0", text: "#ff4d4f" };
+        }
+        if (severity === "中") {
+          return { bg: "#fff7e8", text: "#fa8c16" };
+        }
+        return { bg: "#fffbe6", text: "#faad14" };
+      }
+
+      function escapeHtml(text) {
+        return text
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+    </script>
+  </body>
+</html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenCV.js 矩形检测 PoC</title>
+    <style>
+      body {
+        margin: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .controls {
+        margin-bottom: 12px;
+      }
+
+      .status {
+        margin-left: 10px;
+        font-size: 14px;
+      }
+
+      .panel {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .box {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+
+      .box h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        background: #f5f5f5;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>OpenCV.js 矩形检测（PoC）</h2>
+
+    <div class="controls">
+      <input id="imageInput" type="file" accept="image/*" />
+      <span id="status" class="status">正在加载 OpenCV.js...</span>
+    </div>
+
+    <div class="panel">
+      <div class="box">
+        <h3>原图</h3>
+        <canvas id="srcCanvas"></canvas>
+      </div>
+      <div class="box">
+        <h3>检测结果（绿色框）</h3>
+        <canvas id="dstCanvas"></canvas>
+      </div>
+    </div>
+
+    <script>
+      const imageInput = document.getElementById("imageInput");
+      const statusEl = document.getElementById("status");
+      const srcCanvas = document.getElementById("srcCanvas");
+      const dstCanvas = document.getElementById("dstCanvas");
+      const srcCtx = srcCanvas.getContext("2d");
+      const dstCtx = dstCanvas.getContext("2d");
+
+      let cvReady = false;
+
+      // OpenCV.js 加载完成后会调用这个函数
+      function onOpenCvReady() {
+        cv["onRuntimeInitialized"] = () => {
+          cvReady = true;
+          statusEl.textContent = "OpenCV.js 已就绪，请上传图片。";
+        };
+      }
+
+      imageInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!cvReady) {
+          statusEl.textContent = "OpenCV.js 还没加载完，请稍等再试。";
+          return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          // 1) 把图片画到左侧 canvas（原图）
+          srcCanvas.width = img.width;
+          srcCanvas.height = img.height;
+          srcCtx.drawImage(img, 0, 0);
+
+          // 2) 先复制一份到右侧 canvas，后续在上面画绿色框
+          dstCanvas.width = img.width;
+          dstCanvas.height = img.height;
+          dstCtx.drawImage(img, 0, 0);
+
+          detectRectangles();
+        };
+
+        img.onerror = () => {
+          statusEl.textContent = "图片加载失败，请更换图片。";
+        };
+
+        // 用本地文件生成临时 URL，浏览器可直接读取
+        img.src = URL.createObjectURL(file);
+      });
+
+      function detectRectangles() {
+        statusEl.textContent = "正在检测矩形...";
+
+        // 从右侧 canvas 读取图像，后续在这个副本上画框
+        const src = cv.imread(dstCanvas);
+        const gray = new cv.Mat();
+        const blurred = new cv.Mat();
+        const edges = new cv.Mat();
+        const contours = new cv.MatVector();
+        const hierarchy = new cv.Mat();
+
+        try {
+          // 灰度化 -> 降噪 -> Canny 边缘检测（通用初始参数）
+          cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+          cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
+          cv.Canny(blurred, edges, 50, 150);
+
+          // 提取轮廓
+          cv.findContours(
+            edges,
+            contours,
+            hierarchy,
+            cv.RETR_EXTERNAL,
+            cv.CHAIN_APPROX_SIMPLE
+          );
+
+          let count = 0;
+
+          for (let i = 0; i < contours.size(); i++) {
+            const contour = contours.get(i);
+            const area = cv.contourArea(contour);
+
+            // 过滤太小区域，减少噪声
+            if (area < 800) {
+              contour.delete();
+              continue;
+            }
+
+            // 轮廓近似：把不规则边界近似成多边形
+            const peri = cv.arcLength(contour, true);
+            const approx = new cv.Mat();
+            cv.approxPolyDP(contour, approx, 0.02 * peri, true);
+
+            // 近似后是 4 个点，且凸包，认为是矩形候选
+            if (approx.rows === 4 && cv.isContourConvex(approx)) {
+              const rect = cv.boundingRect(approx);
+              const p1 = new cv.Point(rect.x, rect.y);
+              const p2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
+              cv.rectangle(src, p1, p2, new cv.Scalar(0, 255, 0, 255), 2);
+              count++;
+            }
+
+            approx.delete();
+            contour.delete();
+          }
+
+          cv.imshow(dstCanvas, src);
+          statusEl.textContent = `检测完成：找到 ${count} 个矩形候选区域。`;
+        } catch (err) {
+          console.error(err);
+          statusEl.textContent = "处理失败，请查看控制台错误信息。";
+        } finally {
+          src.delete();
+          gray.delete();
+          blurred.delete();
+          edges.delete();
+          contours.delete();
+          hierarchy.delete();
+        }
+      }
+    </script>
+
+    <!-- 通过 CDN 引入 OpenCV.js（纯前端，不需本地安装） -->
+    <script
+      async
+      src="https://docs.opencv.org/4.x/opencv.js"
+      onload="onOpenCvReady()"
+    ></script>
+  </body>
+</html>
