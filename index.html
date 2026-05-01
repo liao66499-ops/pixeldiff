@@ -687,17 +687,27 @@
         position: relative;
       }
 
-      /* 图片与 bbox 叠加层容器 */
-      .image-wrap {
+      /* 图片与 bbox 层容器（DIV 方案） */
+      .image-container {
         position: relative;
         display: none;
-        align-items: center;
-        justify-content: center;
+        width: fit-content;
+        height: fit-content;
+        max-width: 100%;
+        max-height: 100%;
       }
 
-      .bbox-overlay {
+      .preview-img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+
+      .bbox-layer {
         position: absolute;
-        inset: 0;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
         pointer-events: none;
@@ -925,14 +935,9 @@
                 <p class="upload-title">上传设计稿</p>
                 <p class="upload-desc">拖放图片到此处,或点击选择</p>
               </div>
-              <div id="designImageWrap" class="image-wrap">
-                <img id="designPreview" class="preview" alt="设计稿预览" />
-                <svg
-                  id="designOverlay"
-                  class="bbox-overlay"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                ></svg>
+              <div id="designImageWrap" class="image-container">
+                <img id="designPreview" class="preview preview-img" alt="设计稿预览" />
+                <div id="designBboxLayer" class="bbox-layer"></div>
               </div>
             </div>
           </article>
@@ -954,14 +959,9 @@
                 <p class="upload-title">上传实现稿</p>
                 <p class="upload-desc">拖放图片到此处,或点击选择</p>
               </div>
-              <div id="actualImageWrap" class="image-wrap">
-                <img id="actualPreview" class="preview" alt="实现稿预览" />
-                <svg
-                  id="actualOverlay"
-                  class="bbox-overlay"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                ></svg>
+              <div id="actualImageWrap" class="image-container">
+                <img id="actualPreview" class="preview preview-img" alt="实现稿预览" />
+                <div id="actualBboxLayer" class="bbox-layer"></div>
               </div>
             </div>
           </article>
@@ -1028,8 +1028,8 @@
       const actualPreview = document.getElementById("actualPreview");
       const designImageWrap = document.getElementById("designImageWrap");
       const actualImageWrap = document.getElementById("actualImageWrap");
-      const designOverlay = document.getElementById("designOverlay");
-      const actualOverlay = document.getElementById("actualOverlay");
+      const designBboxLayer = document.getElementById("designBboxLayer");
+      const actualBboxLayer = document.getElementById("actualBboxLayer");
       const designDropzone = document.getElementById("designDropzone");
       const actualDropzone = document.getElementById("actualDropzone");
       const designEmpty = document.getElementById("designEmpty");
@@ -1075,7 +1075,7 @@
         statusText.style.display = "none";
         if (!ready) {
           currentIssues = [];
-          clearBboxOverlays();
+          clearBboxLayers();
           reportPlaceholderEmpty.style.display = "flex";
           reportPlaceholderReady.style.display = "none";
           resultSummary.style.display = "none";
@@ -1096,9 +1096,8 @@
         clearError();
         const objectUrl = URL.createObjectURL(file);
         previewEl.onload = () => {
-          // 图片加载后同步叠加层尺寸，避免 bbox 偏移
-          syncOverlayToImage(previewEl);
-          if (currentIssues.length) drawBboxOverlays(currentIssues);
+          // 图片加载完成后，若已有报告则重绘 bbox
+          if (currentIssues.length) drawBboxes(currentIssues);
         };
         previewEl.src = objectUrl;
         previewEl.style.display = "block";
@@ -1106,13 +1105,13 @@
           designFile = file;
           designEmpty.style.display = "none";
           designReupload.style.display = "inline-flex";
-          designImageWrap.style.display = "inline-flex";
+          designImageWrap.style.display = "inline-block";
         }
         if (kind === "实现稿") {
           actualFile = file;
           actualEmpty.style.display = "none";
           actualReupload.style.display = "inline-flex";
-          actualImageWrap.style.display = "inline-flex";
+          actualImageWrap.style.display = "inline-block";
         }
         updateUploadState();
       }
@@ -1206,7 +1205,7 @@
       function setLoading(loading, text) {
         startBtn.disabled = loading;
         if (loading) {
-          clearBboxOverlays();
+          clearBboxLayers();
           startBtn.innerHTML =
             '<span class="btn-inner"><span class="btn-spinner"></span>AI 分析中...</span>';
           btnNote.textContent = "正在生成差异报告...";
@@ -1272,24 +1271,14 @@
         errorCardBody.textContent = "";
       }
 
-      // 保持 overlay 与图片显示尺寸一致（图片为 contain 模式）
-      function syncOverlayToImage(imgEl) {
-        const wrapEl = imgEl === designPreview ? designImageWrap : actualImageWrap;
-        const rect = imgEl.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        wrapEl.style.width = `${rect.width}px`;
-        wrapEl.style.height = `${rect.height}px`;
-      }
-
-      function clearBboxOverlays() {
-        designOverlay.innerHTML = "";
-        actualOverlay.innerHTML = "";
+      // 清空两张图上的 bbox 覆盖层
+      function clearBboxLayers() {
+        if (designBboxLayer) designBboxLayer.innerHTML = "";
+        if (actualBboxLayer) actualBboxLayer.innerHTML = "";
       }
 
       function getIssueColor(item, idx) {
-        const idNum = Number(item?.id);
-        const order = Number.isFinite(idNum) && idNum > 0 ? idNum : idx + 1;
-        return BBOX_COLORS[(order - 1) % BBOX_COLORS.length];
+        return BBOX_COLORS[idx % BBOX_COLORS.length];
       }
 
       function normalizeBbox(bbox) {
@@ -1308,62 +1297,59 @@
         };
       }
 
-      // 在指定 overlay 上画框 + 徽章
-      function drawSingleBbox(overlayEl, bbox, color, label, dashed, issueId) {
-        const ns = "http://www.w3.org/2000/svg";
-        const x = bbox.x * 100;
-        const y = bbox.y * 100;
-        const w = bbox.w * 100;
-        const h = bbox.h * 100;
+      // 在指定层里画一个矩形框（DIV + border）与编号徽章
+      function drawOneBox(layerEl, bbox, color, num, dashed, issueId) {
+        const box = document.createElement("div");
+        box.className = `bbox-rect ${dashed ? "bbox-design" : "bbox-actual"}`;
+        box.dataset.issueId = String(issueId);
+        box.style.cssText = `
+          position: absolute;
+          left: ${bbox.x * 100}%;
+          top: ${bbox.y * 100}%;
+          width: ${bbox.w * 100}%;
+          height: ${bbox.h * 100}%;
+          border: 2px ${dashed ? "dashed" : "solid"} ${color};
+          background: ${dashed ? `${color}0D` : `${color}1A`};
+          box-sizing: border-box;
+          pointer-events: none;
+        `;
 
-        const rect = document.createElementNS(ns, "rect");
-        rect.setAttribute("x", String(x));
-        rect.setAttribute("y", String(y));
-        rect.setAttribute("width", String(w));
-        rect.setAttribute("height", String(h));
-        rect.setAttribute("fill", "none");
-        rect.setAttribute("stroke", color);
-        rect.setAttribute("stroke-width", "2");
-        if (dashed) rect.setAttribute("stroke-dasharray", "4,3");
-        rect.dataset.issueId = String(issueId);
-        overlayEl.appendChild(rect);
-
-        const badgeCx = Math.max(2.5, x);
-        const badgeCy = Math.max(2.5, y - 1.4);
-
-        const circle = document.createElementNS(ns, "circle");
-        circle.setAttribute("cx", String(badgeCx));
-        circle.setAttribute("cy", String(badgeCy));
-        circle.setAttribute("r", "2.5");
-        circle.setAttribute("fill", color);
-        circle.dataset.issueId = String(issueId);
-        overlayEl.appendChild(circle);
-
-        const text = document.createElementNS(ns, "text");
-        text.setAttribute("x", String(badgeCx));
-        text.setAttribute("y", String(badgeCy + 0.15));
-        text.setAttribute("fill", "#fff");
-        text.setAttribute("font-size", "1.8");
-        text.setAttribute("font-weight", "600");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("dominant-baseline", "middle");
-        text.textContent = `#${label}`;
-        text.dataset.issueId = String(issueId);
-        overlayEl.appendChild(text);
+        const badge = document.createElement("div");
+        badge.textContent = `#${num}`;
+        badge.style.cssText = `
+          position: absolute;
+          top: -10px;
+          left: -2px;
+          background: ${color};
+          color: #fff;
+          font-size: 10px;
+          font-weight: 500;
+          padding: 1px 5px;
+          border-radius: 3px;
+          white-space: nowrap;
+        `;
+        box.appendChild(badge);
+        layerEl.appendChild(box);
       }
 
-      function drawBboxOverlays(issues) {
-        clearBboxOverlays();
-        if (!issues.length) return;
-        issues.forEach((item, idx) => {
-          const actualBbox = normalizeBbox(item?.bbox_actual);
-          const designBbox = normalizeBbox(item?.bbox_design);
-          if (!actualBbox && !designBbox) return;
-          const color = getIssueColor(item, idx);
-          const label = Number.isFinite(Number(item?.id)) ? Number(item.id) : idx + 1;
-          const issueId = Number.isFinite(Number(item?.id)) ? Number(item.id) : idx + 1;
-          if (actualBbox) drawSingleBbox(actualOverlay, actualBbox, color, label, false, issueId);
-          if (designBbox) drawSingleBbox(designOverlay, designBbox, color, label, true, issueId);
+      // 主绘制函数：分别往设计稿/实现稿层画框
+      function drawBboxes(issues) {
+        clearBboxLayers();
+        if (!designBboxLayer || !actualBboxLayer || !issues.length) return;
+
+        issues.forEach((issue, index) => {
+          const color = BBOX_COLORS[index % BBOX_COLORS.length];
+          const num = index + 1;
+          const issueId = Number.isFinite(Number(issue?.id)) ? Number(issue.id) : num;
+          const actualBbox = normalizeBbox(issue?.bbox_actual);
+          const designBbox = normalizeBbox(issue?.bbox_design);
+
+          if (actualBbox) {
+            drawOneBox(actualBboxLayer, actualBbox, color, num, false, issueId);
+          }
+          if (designBbox) {
+            drawOneBox(designBboxLayer, designBbox, color, num, true, issueId);
+          }
         });
       }
 
@@ -1430,9 +1416,7 @@
         reportPlaceholderReady.style.display = "none";
         statusText.style.display = "none";
         issuesList.style.display = "grid";
-        syncOverlayToImage(designPreview);
-        syncOverlayToImage(actualPreview);
-        drawBboxOverlays(currentIssues);
+        drawBboxes(currentIssues);
         // 有走查结果后在按钮下方显示总览
         resultSummary.style.display = "block";
         const issueCount = Number(report.summary.total_issues ?? report.issues.length ?? 0);
@@ -1535,11 +1519,9 @@
           .replaceAll("'", "&#39;");
       }
 
-      // 窗口尺寸变化时，重新同步 overlay 尺寸并重绘框
+      // 窗口尺寸变化时重绘一次，保证框始终贴合图片
       window.addEventListener("resize", () => {
-        syncOverlayToImage(designPreview);
-        syncOverlayToImage(actualPreview);
-        if (currentIssues.length) drawBboxOverlays(currentIssues);
+        if (currentIssues.length) drawBboxes(currentIssues);
       });
 
       updateUploadState();
