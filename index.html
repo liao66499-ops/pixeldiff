@@ -1539,6 +1539,22 @@
         if (window._lastIssues) drawAllBboxes(window._lastIssues);
       });
 
+      // 滚动时重新画框（每帧最多一次，避免滚动卡顿）
+      let scrollRedrawTimer = null;
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (scrollRedrawTimer) return;
+          scrollRedrawTimer = requestAnimationFrame(() => {
+            if (window._lastIssues) {
+              drawAllBboxes(window._lastIssues);
+            }
+            scrollRedrawTimer = null;
+          });
+        },
+        { passive: true }
+      );
+
       updateUploadState();
     </script>
   </body>
