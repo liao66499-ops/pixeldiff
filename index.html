@@ -34,9 +34,10 @@
       }
 
       .container {
-        width: calc(100% - 80px);
-        max-width: 1400px;
+        width: calc(100% - 48px);
+        max-width: 1800px;
         margin: 60px auto 40px;
+        min-height: calc(100vh - 100px);
       }
 
       .shell {
@@ -45,6 +46,7 @@
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+        min-height: calc(100vh - 100px);
       }
 
       /* 顶部导航栏 */
@@ -563,10 +565,11 @@
       /* 三栏布局总区 */
       .workspace {
         display: grid;
-        grid-template-columns: 35% 35% 30%;
+        grid-template-columns: 30% 30% 40%;
         gap: 16px;
         padding: 16px;
         min-height: calc(100vh - 100px);
+        height: 100%;
       }
 
       .work-col {
@@ -714,15 +717,45 @@
       }
 
       .summary-line {
-        margin-top: 8px;
+        margin-top: 0;
         font-size: 12px;
         color: #525a66;
+        min-height: 18px;
       }
 
       .review-body {
         flex: 1;
         overflow-y: auto;
         padding: 16px 18px;
+      }
+
+      /* 右栏底部按钮区：固定在面板底部，不随报告滚动 */
+      .review-footer {
+        flex-shrink: 0;
+        border-top: 0.5px solid #e9edf3;
+        padding: 16px 18px;
+        background: #fff;
+      }
+
+      .review-footer .action-row {
+        justify-content: stretch;
+      }
+
+      .review-footer .btn {
+        height: 48px;
+        border-radius: 10px;
+        font-size: 14px;
+      }
+
+      .review-footer .btn:disabled {
+        background: #d9dde5;
+        color: #fff;
+      }
+
+      .review-footer .btn-note {
+        margin-top: 8px;
+        text-align: center;
+        font-size: 11px;
       }
 
       .review-body::-webkit-scrollbar {
@@ -892,19 +925,12 @@
 
           <!-- 右栏：走查控制与报告 -->
           <section class="work-col review-col result">
+            <!-- 右栏顶部：仅保留结果总览条 -->
             <div class="review-head">
-              <div class="action-row">
-                <button id="startBtn" class="btn" type="button" disabled>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/>
-                  </svg>
-                  开始对比
-                </button>
-              </div>
-              <div id="btnNote" class="btn-note">先上传两张图</div>
               <div id="result-summary" class="summary-line" style="display: none"></div>
             </div>
 
+            <!-- 右栏中部：报告滚动区 -->
             <div class="review-body">
               <div id="statusText" class="status"></div>
               <div id="errorBox" class="error"></div>
@@ -929,10 +955,23 @@
                 <p>上传两张图开始走查</p>
               </div>
               <div id="reportPlaceholderReady" class="report-placeholder" style="display: none">
-                <p>准备就绪,点击右上角“开始对比”</p>
+                <p>准备就绪,点击下方“开始对比”</p>
               </div>
 
               <div id="issuesList" class="issues"></div>
+            </div>
+
+            <!-- 右栏底部：固定操作区 -->
+            <div class="review-footer">
+              <div class="action-row">
+                <button id="startBtn" class="btn" type="button" disabled>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/>
+                  </svg>
+                  开始对比
+                </button>
+              </div>
+              <div id="btnNote" class="btn-note">先上传两张图</div>
             </div>
           </section>
         </section>
