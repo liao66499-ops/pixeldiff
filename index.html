@@ -687,28 +687,12 @@
         position: relative;
       }
 
-      /* 图片舞台层：由 JS 精确同步 bbox-layer 到图片显示区域 */
-      .img-stage {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-
+      /* 预览图直接显示，画框改为 JS 动态 append 到 body */
       .preview-img {
         display: block;
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
-      }
-
-      .bbox-layer {
-        position: absolute;
-        pointer-events: none;
-        /* top/left/width/height 由 JS 动态设置，避免与 contain 留白错位 */
       }
 
       /* 右栏：走查面板 */
@@ -933,9 +917,9 @@
                 <p class="upload-title">上传设计稿</p>
                 <p class="upload-desc">拖放图片到此处,或点击选择</p>
               </div>
-              <div id="designStage" class="img-stage">
+              <div class="img-stage" id="designStage">
                 <img id="designPreview" class="preview preview-img" alt="设计稿预览" />
-                <div id="designBboxLayer" class="bbox-layer"></div>
+                <div class="bbox-layer" id="designBboxLayer"></div>
               </div>
             </div>
           </article>
@@ -957,9 +941,9 @@
                 <p class="upload-title">上传实现稿</p>
                 <p class="upload-desc">拖放图片到此处,或点击选择</p>
               </div>
-              <div id="actualStage" class="img-stage">
+              <div class="img-stage" id="actualStage">
                 <img id="actualPreview" class="preview preview-img" alt="实现稿预览" />
-                <div id="actualBboxLayer" class="bbox-layer"></div>
+                <div class="bbox-layer" id="actualBboxLayer"></div>
               </div>
             </div>
           </article>
@@ -1022,10 +1006,10 @@
     <script>
       const designInput = document.getElementById("designInput");
       const actualInput = document.getElementById("actualInput");
-      const designPreview = document.getElementById("designPreview");
-      const actualPreview = document.getElementById("actualPreview");
       const designStage = document.getElementById("designStage");
       const actualStage = document.getElementById("actualStage");
+      const designPreview = document.getElementById("designPreview");
+      const actualPreview = document.getElementById("actualPreview");
       const designBboxLayer = document.getElementById("designBboxLayer");
       const actualBboxLayer = document.getElementById("actualBboxLayer");
       const designDropzone = document.getElementById("designDropzone");
@@ -1054,6 +1038,8 @@
       let loadingStepIndex = 0;
       let hasReport = false;
       let currentIssues = [];
+      // 全局存储已画的框，方便清除
+      let drawnBboxes = [];
 
       const LOADING_STEPS = [
         "正在上传图片...",
@@ -1073,7 +1059,7 @@
         statusText.style.display = "none";
         if (!ready) {
           currentIssues = [];
-          clearBboxLayers();
+          clearBboxes();
           reportPlaceholderEmpty.style.display = "flex";
           reportPlaceholderReady.style.display = "none";
           resultSummary.style.display = "none";
@@ -1095,7 +1081,7 @@
         const objectUrl = URL.createObjectURL(file);
         previewEl.onload = () => {
           // 图片加载完成后，若已有报告则重绘 bbox
-          if (currentIssues.length) drawBboxes(currentIssues);
+          if (currentIssues.length) drawAllBboxes(currentIssues);
         };
         previewEl.src = objectUrl;
         previewEl.style.display = "block";
@@ -1203,7 +1189,7 @@
       function setLoading(loading, text) {
         startBtn.disabled = loading;
         if (loading) {
-          clearBboxLayers();
+          clearBboxes();
           startBtn.innerHTML =
             '<span class="btn-inner"><span class="btn-spinner"></span>AI 分析中...</span>';
           btnNote.textContent = "正在生成差异报告...";
@@ -1269,13 +1255,12 @@
         errorCardBody.textContent = "";
       }
 
-      // 清空两张图上的 bbox 覆盖层
-      function clearBboxLayers() {
-        if (designBboxLayer) designBboxLayer.innerHTML = "";
-        if (actualBboxLayer) actualBboxLayer.innerHTML = "";
+      function clearBboxes() {
+        drawnBboxes.forEach((el) => el.remove());
+        drawnBboxes = [];
       }
 
-      // 关键函数：强制把 bbox-layer 对齐到图片的实际显示区域（含 contain 留白计算）
+      // 关键函数：把 layer 对齐到图片实际显示区域（用于调试和兜底）
       function syncLayerToImage(imgId, layerId) {
         const img = document.getElementById(imgId);
         const layer = document.getElementById(layerId);
@@ -1288,8 +1273,6 @@
 
         const imgRect = img.getBoundingClientRect();
         const stageRect = img.parentElement.getBoundingClientRect();
-        if (!imgRect.width || !imgRect.height || !stageRect.width || !stageRect.height) return;
-
         const naturalRatio = img.naturalWidth / img.naturalHeight;
         const containerRatio = imgRect.width / imgRect.height;
 
@@ -1306,91 +1289,78 @@
         const offsetX = (stageRect.width - displayW) / 2;
         const offsetY = (stageRect.height - displayH) / 2;
 
-        layer.style.left = `${offsetX}px`;
-        layer.style.top = `${offsetY}px`;
-        layer.style.width = `${displayW}px`;
-        layer.style.height = `${displayH}px`;
+        layer.style.left = offsetX + "px";
+        layer.style.top = offsetY + "px";
+        layer.style.width = displayW + "px";
+        layer.style.height = displayH + "px";
       }
 
       function getIssueColor(item, idx) {
         return BBOX_COLORS[idx % BBOX_COLORS.length];
       }
 
-      function normalizeBbox(bbox) {
-        if (!bbox || typeof bbox !== "object") return null;
-        const x = Number(bbox.x_pct);
-        const y = Number(bbox.y_pct);
-        const w = Number(bbox.w_pct);
-        const h = Number(bbox.h_pct);
-        if (![x, y, w, h].every((v) => Number.isFinite(v))) return null;
-        if (w <= 0 || h <= 0) return null;
-        return {
-          x: Math.max(0, Math.min(1, x)),
-          y: Math.max(0, Math.min(1, y)),
-          w: Math.max(0, Math.min(1, w)),
-          h: Math.max(0, Math.min(1, h)),
-        };
-      }
+      function drawBboxOnImage(img, bbox, color, num, dashed) {
+        if (!img || !bbox) return;
+        const rect = img.getBoundingClientRect();
 
-      // 创建一个 bbox div（实线/虚线 + 编号徽章）
-      function createBboxDiv(bbox, color, num, dashed, issueId) {
         const box = document.createElement("div");
-        box.className = `bbox-rect ${dashed ? "bbox-design" : "bbox-actual"}`;
-        box.dataset.issueId = String(issueId);
         box.style.cssText = `
-          position: absolute;
-          left: ${bbox.x * 100}%;
-          top: ${bbox.y * 100}%;
-          width: ${bbox.w * 100}%;
-          height: ${bbox.h * 100}%;
+          position: fixed;
+          left: ${rect.left + rect.width * bbox.x_pct}px;
+          top: ${rect.top + rect.height * bbox.y_pct}px;
+          width: ${rect.width * bbox.w_pct}px;
+          height: ${rect.height * bbox.h_pct}px;
           border: 2px ${dashed ? "dashed" : "solid"} ${color};
-          background: ${dashed ? `${color}0D` : `${color}1A`};
-          box-sizing: border-box;
+          background: ${color}1A;
           pointer-events: none;
+          z-index: 100;
+          box-sizing: border-box;
           min-width: 8px;
           min-height: 8px;
         `;
 
         const badge = document.createElement("div");
-        badge.textContent = `#${num}`;
+        badge.textContent = "#" + num;
         badge.style.cssText = `
           position: absolute;
           top: -10px;
           left: -2px;
           background: ${color};
-          color: #fff;
+          color: white;
           font-size: 10px;
           font-weight: 500;
           padding: 1px 5px;
           border-radius: 3px;
+          line-height: 1.3;
           white-space: nowrap;
         `;
         box.appendChild(badge);
-        return box;
+        document.body.appendChild(box);
+        drawnBboxes.push(box);
       }
 
-      // 主绘制函数：先对齐 layer，再在两图上画框
-      function drawBboxes(issues) {
-        // 先同步 layer 到图片实际显示区域（必须先做）
+      function drawAllBboxes(issues) {
+        clearBboxes();
+
+        // 先同步 layer 位置（按要求保留）
         syncLayerToImage("designPreview", "designBboxLayer");
         syncLayerToImage("actualPreview", "actualBboxLayer");
-        clearBboxLayers();
-        if (!designBboxLayer || !actualBboxLayer || !issues.length) return;
 
-        issues.forEach((issue, index) => {
-          const color = BBOX_COLORS[index % BBOX_COLORS.length];
-          const num = index + 1;
-          const issueId = Number.isFinite(Number(issue?.id)) ? Number(issue.id) : num;
-          const actualBbox = normalizeBbox(issue?.bbox_actual);
-          const designBbox = normalizeBbox(issue?.bbox_design);
+        const designImg = document.getElementById("designPreview");
+        const actualImg = document.getElementById("actualPreview");
+        if (!designImg || !actualImg) {
+          console.warn("找不到设计稿或实现稿图片元素");
+          return;
+        }
 
-          if (actualBbox) {
-            const box = createBboxDiv(actualBbox, color, num, false, issueId);
-            actualBboxLayer.appendChild(box);
+        issues.forEach((issue, i) => {
+          const color = BBOX_COLORS[i % BBOX_COLORS.length];
+          const num = i + 1;
+          if (issue.bbox_actual) {
+            drawBboxOnImage(actualImg, issue.bbox_actual, color, num, false);
           }
-          if (designBbox) {
-            const box = createBboxDiv(designBbox, color, num, true, issueId);
-            designBboxLayer.appendChild(box);
+          if (issue.bbox_design) {
+            drawBboxOnImage(designImg, issue.bbox_design, color, num, true);
           }
         });
       }
@@ -1458,7 +1428,8 @@
         reportPlaceholderReady.style.display = "none";
         statusText.style.display = "none";
         issuesList.style.display = "grid";
-        drawBboxes(currentIssues);
+        window._lastIssues = report.issues;
+        drawAllBboxes(report.issues);
         // 有走查结果后在按钮下方显示总览
         resultSummary.style.display = "block";
         const issueCount = Number(report.summary.total_issues ?? report.issues.length ?? 0);
@@ -1565,7 +1536,7 @@
       window.addEventListener("resize", () => {
         syncLayerToImage("designPreview", "designBboxLayer");
         syncLayerToImage("actualPreview", "actualBboxLayer");
-        if (currentIssues.length) drawBboxes(currentIssues);
+        if (window._lastIssues) drawAllBboxes(window._lastIssues);
       });
 
       updateUploadState();
