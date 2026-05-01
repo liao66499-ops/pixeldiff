@@ -559,6 +559,272 @@
         font-weight: 400;
         color: var(--sub-text);
       }
+
+      /* 三栏布局总区 */
+      .workspace {
+        display: grid;
+        grid-template-columns: 35% 35% 30%;
+        gap: 16px;
+        padding: 16px;
+        min-height: calc(100vh - 100px);
+      }
+
+      .work-col {
+        min-width: 0;
+      }
+
+      /* 左中两栏上传区 */
+      .upload-col {
+        border: 1.5px dashed;
+        border-radius: 12px;
+        min-height: 600px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .design-col {
+        background: rgba(22, 119, 255, 0.04);
+        border-color: rgba(22, 119, 255, 0.3);
+      }
+
+      .dev-col {
+        background: rgba(217, 78, 49, 0.04);
+        border-color: rgba(217, 78, 49, 0.3);
+      }
+
+      .upload-col-head {
+        height: 40px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .upload-col-title {
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .design-col .upload-col-title {
+        color: #1677ff;
+      }
+
+      .dev-col .upload-col-title {
+        color: #d94e31;
+      }
+
+      .mini-reupload {
+        display: none;
+        border: 0;
+        background: transparent;
+        color: #6d7684;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 400;
+      }
+
+      .upload-col-body {
+        flex: 1;
+        padding: 8px 16px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .upload-empty {
+        text-align: center;
+      }
+
+      .upload-col .file-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      .upload-col .upload-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        margin: 0 auto 16px;
+      }
+
+      .upload-col.design-col .upload-icon-wrap {
+        background: rgba(22, 119, 255, 0.1);
+      }
+
+      .upload-col.dev-col .upload-icon-wrap {
+        background: rgba(217, 78, 49, 0.1);
+      }
+
+      .upload-col .upload-title {
+        font-size: 18px;
+        margin: 0 0 8px;
+      }
+
+      .upload-col .preview {
+        margin-top: 0;
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        object-fit: contain;
+        display: none;
+        z-index: 1;
+      }
+
+      /* 右栏：走查面板 */
+      .review-col {
+        border: 0.5px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        min-height: 600px;
+        margin-top: 0;
+        opacity: 1;
+      }
+
+      .review-head {
+        padding: 16px 18px;
+        border-bottom: 0.5px solid #e9edf3;
+      }
+
+      .review-head .action-row {
+        justify-content: stretch;
+      }
+
+      .review-head .btn {
+        height: 48px;
+        border-radius: 10px;
+        font-size: 14px;
+      }
+
+      .review-head .btn:disabled {
+        background: #d9dde5;
+        color: #fff;
+      }
+
+      .review-head .btn-note {
+        margin-top: 8px;
+        text-align: left;
+        font-size: 12px;
+      }
+
+      .summary-line {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #525a66;
+      }
+
+      .review-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 18px;
+      }
+
+      .review-body::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .review-body::-webkit-scrollbar-thumb {
+        background: #d8dde5;
+        border-radius: 999px;
+      }
+
+      .report-placeholder {
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #778090;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .status {
+        display: none;
+        margin-top: 0;
+        min-height: auto;
+        padding: 0;
+        background: transparent;
+        color: #5c6470;
+        font-size: 12px;
+      }
+
+      .loading-panel {
+        margin-top: 0;
+      }
+
+      .issues {
+        gap: 10px;
+      }
+
+      .issue-card {
+        border: 0.5px solid #e5e8ef;
+        border-left: 3px solid #faad14;
+        border-radius: 8px;
+        padding: 12px 14px;
+      }
+
+      .issue-head {
+        margin-bottom: 0;
+      }
+
+      .badge {
+        width: 20px;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 11px;
+      }
+
+      .tag {
+        border-radius: 4px;
+        font-size: 11px;
+        padding: 2px 7px;
+      }
+
+      .issue-title {
+        margin-top: 6px;
+        font-size: 13px;
+      }
+
+      .desc-line {
+        margin-top: 4px;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .meta-line {
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 0.5px solid #eceff4;
+        display: flex;
+        gap: 14px;
+        font-size: 11px;
+      }
+
+      /* 小屏降级为上下布局 */
+      @media (max-width: 1024px) {
+        .workspace {
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .upload-col,
+        .review-col {
+          min-height: 420px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -578,101 +844,99 @@
           </div>
         </header>
 
-        <!-- Hero 区 -->
-        <section class="hero">
-          <h1 class="hero-title">让 AI 帮你完成设计走查</h1>
-          <p class="hero-subtitle">上传设计稿和实现稿,30 秒内得到结构化差异报告</p>
+        <!-- 三栏主体：左设计稿 / 中实现稿 / 右走查面板 -->
+        <section class="workspace">
+          <!-- 左栏：设计稿区 -->
+          <article class="work-col upload-col design-col">
+            <div class="upload-col-head">
+              <span class="upload-col-title">设计稿</span>
+              <button id="designReupload" class="mini-reupload" type="button">重新上传</button>
+            </div>
+            <div class="upload-col-body">
+              <input id="designInput" class="file-input" type="file" accept="image/*" />
+              <div id="designEmpty" class="upload-empty">
+                <div class="upload-icon-wrap" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="#1677FF" stroke-width="1.5"/>
+                    <circle cx="8.5" cy="9" r="1.2" fill="#1677FF"/>
+                    <path d="M5.5 17l4.2-4.2a1 1 0 0 1 1.4 0L14 15.7l1.8-1.8a1 1 0 0 1 1.4 0l1.3 1.3" stroke="#1677FF" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <p class="upload-title">上传设计稿</p>
+                <p class="upload-desc">拖放图片到此处,或点击选择</p>
+              </div>
+              <img id="designPreview" class="preview" alt="设计稿预览" />
+            </div>
+          </article>
+
+          <!-- 中栏：实现稿区 -->
+          <article class="work-col upload-col dev-col">
+            <div class="upload-col-head">
+              <span class="upload-col-title">实现稿</span>
+              <button id="actualReupload" class="mini-reupload" type="button">重新上传</button>
+            </div>
+            <div class="upload-col-body">
+              <input id="actualInput" class="file-input" type="file" accept="image/*" />
+              <div id="actualEmpty" class="upload-empty">
+                <div class="upload-icon-wrap" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 7L4 12l4 5M16 7l4 5-4 5M13 5l-2 14" stroke="#D94E31" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <p class="upload-title">上传实现稿</p>
+                <p class="upload-desc">拖放图片到此处,或点击选择</p>
+              </div>
+              <img id="actualPreview" class="preview" alt="实现稿预览" />
+            </div>
+          </article>
+
+          <!-- 右栏：走查控制与报告 -->
+          <section class="work-col review-col result">
+            <div class="review-head">
+              <div class="action-row">
+                <button id="startBtn" class="btn" type="button" disabled>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/>
+                  </svg>
+                  开始对比
+                </button>
+              </div>
+              <div id="btnNote" class="btn-note">先上传两张图</div>
+              <div id="result-summary" class="summary-line" style="display: none"></div>
+            </div>
+
+            <div class="review-body">
+              <div id="statusText" class="status"></div>
+              <div id="errorBox" class="error"></div>
+
+              <div id="loadingPanel" class="loading-panel">
+                <div class="loading-spinner-lg"></div>
+                <div class="loading-title">AI 正在分析两张图...</div>
+                <div class="loading-subtitle">通常需要 10-30 秒，请耐心等待</div>
+                <div id="loadingStep" class="loading-step">正在上传图片...</div>
+              </div>
+
+              <div id="errorCard" class="error-card">
+                <div class="error-card-title">走查失败</div>
+                <div id="errorCardBody" class="error-card-body"></div>
+              </div>
+
+              <div id="reportPlaceholderEmpty" class="report-placeholder">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M7 4h7l3 3v13H7V4z" stroke="#9BA3AF" stroke-width="1.5" stroke-linejoin="round"/>
+                  <path d="M10 10h4M10 14h6" stroke="#9BA3AF" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <p>上传两张图开始走查</p>
+              </div>
+              <div id="reportPlaceholderReady" class="report-placeholder" style="display: none">
+                <p>准备就绪,点击右上角“开始对比”</p>
+              </div>
+
+              <div id="issuesList" class="issues"></div>
+            </div>
+          </section>
         </section>
-
-        <section class="panel">
-        <div class="upload-grid">
-          <div class="upload-box design">
-            <input id="designInput" class="file-input" type="file" accept="image/*" />
-            <div class="upload-icon-wrap" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="#1677FF" stroke-width="1.5"/>
-                <circle cx="8.5" cy="9" r="1.2" fill="#1677FF"/>
-                <path d="M5.5 17l4.2-4.2a1 1 0 0 1 1.4 0L14 15.7l1.8-1.8a1 1 0 0 1 1.4 0l1.3 1.3" stroke="#1677FF" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <p class="upload-title">上传设计稿</p>
-            <p class="upload-desc">拖放图片到此处,或点击选择</p>
-            <img id="designPreview" class="preview" alt="设计稿预览" />
-          </div>
-          <div class="upload-box dev">
-            <input id="actualInput" class="file-input" type="file" accept="image/*" />
-            <div class="upload-icon-wrap" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M8 7L4 12l4 5M16 7l4 5-4 5M13 5l-2 14" stroke="#D94E31" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <p class="upload-title">上传实现稿</p>
-            <p class="upload-desc">拖放图片到此处,或点击选择</p>
-            <img id="actualPreview" class="preview" alt="实现稿预览" />
-          </div>
-        </div>
-
-        <div class="action-row">
-          <button id="startBtn" class="btn" type="button" disabled>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/>
-            </svg>
-            开始对比
-          </button>
-        </div>
-        <div class="btn-note">约 30 秒分析完成 · 不存储您的图片</div>
-
-        <div id="statusText" class="status">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 4.5L21 20H3L12 4.5z" stroke="#BA7517" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M12 9v5" stroke="#BA7517" stroke-width="1.6" stroke-linecap="round"/>
-            <circle cx="12" cy="17" r="1" fill="#BA7517"/>
-          </svg>
-          为确保对比准确,请上传 <strong>相同尺寸</strong> 的设计稿和开发稿
-        </div>
-        <div id="errorBox" class="error"></div>
-        <div class="value-stats">
-          <div class="value-item">
-            <div class="value-number">8</div>
-            <div class="value-label">检测维度</div>
-          </div>
-          <div class="value-item">
-            <div class="value-number">~10x</div>
-            <div class="value-label">效率提升</div>
-          </div>
-          <div class="value-item">
-            <div class="value-number">PDF</div>
-            <div class="value-label">一键导出</div>
-          </div>
-        </div>
-      </section>
       </div>
-
-      <section class="result">
-        <div id="loadingPanel" class="loading-panel">
-          <div class="loading-spinner-lg"></div>
-          <div class="loading-title">AI 正在分析两张图...</div>
-          <div class="loading-subtitle">通常需要 10-30 秒，请耐心等待</div>
-          <div id="loadingStep" class="loading-step">正在上传图片...</div>
-        </div>
-
-        <div id="errorCard" class="error-card">
-          <div class="error-card-title">走查失败</div>
-          <div id="errorCardBody" class="error-card-body"></div>
-        </div>
-
-        <div id="result-summary" class="summary" style="display: none">
-          <div class="summary-card">
-            <div class="summary-label">总差异数</div>
-            <div id="totalIssues" class="summary-value">-</div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-label">一致性评分</div>
-            <div id="score" class="summary-value">-</div>
-          </div>
-        </div>
-        <div id="issuesList" class="issues"></div>
-      </section>
     </div>
 
     <script>
@@ -680,12 +944,17 @@
       const actualInput = document.getElementById("actualInput");
       const designPreview = document.getElementById("designPreview");
       const actualPreview = document.getElementById("actualPreview");
+      const designEmpty = document.getElementById("designEmpty");
+      const actualEmpty = document.getElementById("actualEmpty");
+      const designReupload = document.getElementById("designReupload");
+      const actualReupload = document.getElementById("actualReupload");
       const startBtn = document.getElementById("startBtn");
+      const btnNote = document.getElementById("btnNote");
       const statusText = document.getElementById("statusText");
       const errorBox = document.getElementById("errorBox");
-      const totalIssues = document.getElementById("totalIssues");
-      const score = document.getElementById("score");
       const resultSummary = document.getElementById("result-summary");
+      const reportPlaceholderEmpty = document.getElementById("reportPlaceholderEmpty");
+      const reportPlaceholderReady = document.getElementById("reportPlaceholderReady");
       const issuesList = document.getElementById("issuesList");
       const loadingPanel = document.getElementById("loadingPanel");
       const loadingStep = document.getElementById("loadingStep");
@@ -697,6 +966,7 @@
       let actualFile = null;
       let loadingStepTimer = null;
       let loadingStepIndex = 0;
+      let hasReport = false;
 
       const LOADING_STEPS = [
         "正在上传图片...",
@@ -710,6 +980,16 @@
         const ready = !!(designFile && actualFile);
         if (!loadingPanel.classList.contains("active")) {
           startBtn.disabled = !ready;
+        }
+        btnNote.textContent = ready ? "约 30 秒分析完成 · 不存储您的图片" : "先上传两张图";
+        statusText.style.display = "none";
+        if (!ready) {
+          reportPlaceholderEmpty.style.display = "flex";
+          reportPlaceholderReady.style.display = "none";
+          resultSummary.style.display = "none";
+        } else if (!hasReport) {
+          reportPlaceholderEmpty.style.display = "none";
+          reportPlaceholderReady.style.display = "flex";
         }
       }
 
@@ -725,10 +1005,22 @@
         const objectUrl = URL.createObjectURL(file);
         previewEl.src = objectUrl;
         previewEl.style.display = "block";
-        if (kind === "设计稿") designFile = file;
-        if (kind === "实现稿") actualFile = file;
+        if (kind === "设计稿") {
+          designFile = file;
+          designEmpty.style.display = "none";
+          designReupload.style.display = "inline-flex";
+        }
+        if (kind === "实现稿") {
+          actualFile = file;
+          actualEmpty.style.display = "none";
+          actualReupload.style.display = "inline-flex";
+        }
         updateUploadState();
       }
+
+      // 仅用于触发原有 input 选择，不改变上传逻辑
+      designReupload.addEventListener("click", () => designInput.click());
+      actualReupload.addEventListener("click", () => actualInput.click());
 
       designInput.addEventListener("change", () =>
         handleFileChange(designInput, designPreview, "设计稿")
@@ -807,15 +1099,22 @@
         startBtn.disabled = loading;
         if (loading) {
           startBtn.innerHTML =
-            '<span class="btn-inner"><span class="btn-spinner"></span>AI 走查中...</span>';
+            '<span class="btn-inner"><span class="btn-spinner"></span>AI 分析中...</span>';
+          btnNote.textContent = "正在生成差异报告...";
           statusText.innerHTML = `<span class="spinner"></span>${escapeHtml(text)}`;
+          statusText.style.display = "flex";
+          reportPlaceholderEmpty.style.display = "none";
+          reportPlaceholderReady.style.display = "none";
+          issuesList.style.display = "none";
           resultSection.classList.add("is-dimmed");
           loadingPanel.classList.add("active");
           startLoadingSteps();
         } else {
           startBtn.innerHTML =
-            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/></svg>开始对比';
+            `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/></svg>${hasReport ? "重新对比" : "开始对比"}`;
           statusText.textContent = text;
+          statusText.style.display = "none";
+          issuesList.style.display = "grid";
           resultSection.classList.remove("is-dimmed");
           loadingPanel.classList.remove("active");
           stopLoadingSteps();
@@ -854,6 +1153,9 @@
       function showErrorCard(msg) {
         errorCard.style.display = "block";
         errorCardBody.textContent = msg;
+        issuesList.style.display = "none";
+        reportPlaceholderEmpty.style.display = "none";
+        reportPlaceholderReady.style.display = "none";
       }
 
       function clearErrorCard() {
@@ -918,12 +1220,26 @@
       }
 
       function renderReport(report) {
-        // 有走查结果后再显示顶部总览卡片，避免空状态占位
-        resultSummary.style.display = "grid";
+        hasReport = true;
+        reportPlaceholderEmpty.style.display = "none";
+        reportPlaceholderReady.style.display = "none";
+        statusText.style.display = "none";
+        issuesList.style.display = "grid";
+        // 有走查结果后在按钮下方显示总览
+        resultSummary.style.display = "block";
         const issueCount = Number(report.summary.total_issues ?? report.issues.length ?? 0);
         const scoreValue = Number(report.summary.consistency_score ?? 0);
-        totalIssues.textContent = Number.isFinite(issueCount) ? String(issueCount) : "-";
-        score.textContent = Number.isFinite(scoreValue) ? scoreValue.toFixed(2) : "-";
+        const severityCount = { 高: 0, 中: 0, 低: 0 };
+        report.issues.forEach((it) => {
+          if (it?.severity === "高" || it?.severity === "中" || it?.severity === "低") {
+            severityCount[it.severity]++;
+          }
+        });
+        resultSummary.innerHTML = `共 ${Number.isFinite(issueCount) ? issueCount : 0} 处差异 · 一致性 ${
+          Number.isFinite(scoreValue) ? scoreValue.toFixed(2) : "-"
+        } · <span style="color:#ff4d4f">●高 ${severityCount.高}</span> <span style="color:#fa8c16">●中 ${
+          severityCount.中
+        }</span> <span style="color:#faad14">●低 ${severityCount.低}</span>`;
 
         issuesList.innerHTML = "";
         if (!report.issues.length) {
@@ -939,29 +1255,40 @@
           card.className = "issue-card";
 
           const sevColor = getSeverityColor(item.severity);
+          const typeColor = getTypeColor(item.type);
+          const bottomInfo =
+            item.design_value || item.actual_value
+              ? `<div class="meta-line">${
+                  item.design_value
+                    ? `<span><strong>设计:</strong> ${escapeHtml(String(item.design_value))}</span>`
+                    : ""
+                }${
+                  item.actual_value
+                    ? `<span><strong>实现:</strong> ${escapeHtml(String(item.actual_value))}</span>`
+                    : ""
+                }</div>`
+              : "";
           card.innerHTML = `
+            <div class="issue-level-line" style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${sevColor.text};border-radius:8px 0 0 8px;"></div>
             <div class="issue-head">
-              <span class="badge">#${escapeHtml(String(item.id ?? idx + 1))}</span>
-              <span class="tag" style="background:${sevColor.bg};color:${sevColor.text};">严重度：${escapeHtml(
-            String(item.severity || "-")
+              <span class="badge" style="background:${sevColor.text};">#${escapeHtml(String(item.id ?? idx + 1))}</span>
+              <span class="tag" style="background:${typeColor.bg};color:${typeColor.text};">${escapeHtml(
+            String(item.type || "其他")
           )}</span>
-              <span class="tag tag-type">${escapeHtml(String(item.type || "其他"))}</span>
+              <span style="font-size:11px;font-weight:500;color:${sevColor.text};">${escapeHtml(
+            String(item.severity || "-")
+          )}严重度</span>
             </div>
             <div class="issue-title">${escapeHtml(String(item.title || "未命名问题"))}</div>
-            <div class="meta-line"><strong>位置：</strong>${escapeHtml(String(item.location || "-"))}</div>
-            <div class="desc-line"><strong>差异描述：</strong>${escapeHtml(
-              String(item.description || "-")
-            )}</div>
-            <div class="desc-line"><strong>设计稿值：</strong>${escapeHtml(
-              String(item.design_value || "-")
-            )}</div>
-            <div class="desc-line"><strong>实现稿值：</strong>${escapeHtml(
-              String(item.actual_value || "-")
-            )}</div>
-            <div class="desc-line"><strong>修复建议：</strong>${escapeHtml(
+            <div class="desc-line">${escapeHtml(String(item.location || "-"))} · ${escapeHtml(
+            String(item.description || "-")
+          )}</div>
+            <div class="desc-line"><strong>建议：</strong>${escapeHtml(
               String(item.suggestion || "-")
             )}</div>
+            ${bottomInfo}
           `;
+          card.style.position = "relative";
 
           issuesList.appendChild(card);
         });
@@ -975,6 +1302,19 @@
           return { bg: "#fff7e8", text: "#fa8c16" };
         }
         return { bg: "#fffbe6", text: "#faad14" };
+      }
+
+      function getTypeColor(type) {
+        if (type === "颜色" || type === "背景" || type === "位置" || type === "缺失元素") {
+          return { bg: "#FFEEEE", text: "#A32D2D" };
+        }
+        if (type === "间距" || type === "字号") {
+          return { bg: "#FFF1E0", text: "#854F0B" };
+        }
+        if (type === "圆角" || type === "尺寸") {
+          return { bg: "#FFF7E0", text: "#854F0B" };
+        }
+        return { bg: "#F0F0F0", text: "#595959" };
       }
 
       function escapeHtml(text) {
