@@ -34,9 +34,9 @@
       }
 
       .container {
-        width: min(1080px, 100vw);
+        width: calc(100% - 80px);
+        max-width: 1400px;
         margin: 60px auto 40px;
-        padding: 0 24px;
       }
 
       .shell {
@@ -136,8 +136,8 @@
 
       /* Hero 文案区 */
       .hero {
-        text-align: center;
-        padding: 40px 20px;
+        text-align: left;
+        padding: 32px;
       }
 
       .hero-title {
@@ -171,7 +171,7 @@
         border: 1.5px dashed;
         border-radius: 12px;
         padding: 32px 16px;
-        min-height: 220px;
+        min-height: 240px;
         text-align: center;
         cursor: pointer;
         position: relative;
@@ -533,6 +533,9 @@
         padding: 18px 32px;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       .value-item {
