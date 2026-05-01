@@ -79,18 +79,10 @@
       }
 
       .action-row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 10px;
+        display: flex;
+        justify-content: flex-end;
         align-items: center;
-      }
-
-      .key-input {
-        width: 100%;
-        padding: 11px 12px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        font-size: 14px;
+        gap: 10px;
       }
 
       .btn {
@@ -352,16 +344,10 @@
         </div>
 
         <div class="action-row">
-          <input
-            id="apiKeyInput"
-            class="key-input"
-            type="password"
-            placeholder="请输入 Gemini API Key（仅本次内存使用，不会保存）"
-          />
-          <button id="startBtn" class="btn">开始走查</button>
+          <button id="startBtn" class="btn" type="button" disabled>开始走查</button>
         </div>
 
-        <div id="statusText" class="status">请上传两张图并输入 API Key。</div>
+        <div id="statusText" class="status">请先上传设计稿与实现稿，然后点击「开始走查」。</div>
         <div id="errorBox" class="error"></div>
       </section>
 
@@ -393,14 +379,10 @@
     </div>
 
     <script>
-      const API_URL =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent";
-
       const designInput = document.getElementById("designInput");
       const actualInput = document.getElementById("actualInput");
       const designPreview = document.getElementById("designPreview");
       const actualPreview = document.getElementById("actualPreview");
-      const apiKeyInput = document.getElementById("apiKeyInput");
       const startBtn = document.getElementById("startBtn");
       const statusText = document.getElementById("statusText");
       const errorBox = document.getElementById("errorBox");
@@ -425,38 +407,13 @@
         "生成报告中...",
       ];
 
-      const REVIEW_PROMPT = `你是资深 UI 设计走查专家。我会给你两张图：
-- 图 A 是设计稿
-- 图 B 是开发实现稿
-
-请对比这两张图，找出实现稿中与设计稿不一致的地方。
-
-请严格按以下 JSON 格式返回，不要 markdown 包裹，不要任何额外说明：
-
-{
-  "summary": {
-    "total_issues": 数字,
-    "consistency_score": 0-1 的小数（越接近 1 越一致）
-  },
-  "issues": [
-    {
-      "id": 1,
-      "type": "颜色" | "字号" | "间距" | "圆角" | "位置" | "缺失元素" | "尺寸" | "其他",
-      "severity": "高" | "中" | "低",
-      "title": "简短标题，不超过 15 字",
-      "location": "用文字描述差异在图中的大致位置，如'页面顶部 Logo 区域'",
-      "description": "详细描述差异是什么",
-      "design_value": "设计稿的具体值（如有）",
-      "actual_value": "实现稿的具体值（如有）",
-      "suggestion": "给开发的修复建议"
-    }
-  ]
-}
-
-要求：
-- 最多输出 10 条最重要的差异
-- 按严重度从高到低排序
-- 用户感知不到的差异（小于 2 像素的偏移、亚像素抗锯齿）不要报告`;
+      // 仅在两张图都已选择时启用「开始走查」，避免点了才提示缺图
+      function updateUploadState() {
+        const ready = !!(designFile && actualFile);
+        if (!loadingPanel.classList.contains("active")) {
+          startBtn.disabled = !ready;
+        }
+      }
 
       // 文件选择后更新预览图，并把 File 保存在内存变量中
       function handleFileChange(inputEl, previewEl, kind) {
@@ -472,6 +429,7 @@
         previewEl.style.display = "block";
         if (kind === "设计稿") designFile = file;
         if (kind === "实现稿") actualFile = file;
+        updateUploadState();
       }
 
       designInput.addEventListener("change", () =>
@@ -482,70 +440,60 @@
       );
 
       startBtn.addEventListener("click", async () => {
-        const apiKey = apiKeyInput.value.trim();
         if (!designFile || !actualFile) {
           showError("请先上传设计稿和实现稿。");
-          return;
-        }
-        if (!apiKey) {
-          showError("请先输入 Gemini API Key。");
           return;
         }
 
         clearError();
         clearErrorCard();
-        setLoading(true, "正在调用 Gemini 分析差异，请稍候...");
+        setLoading(true, "正在通过服务器分析差异，请稍候...");
         try {
-          // 1) 将两张图转成 base64 + mime 类型，作为 inline_data 上传
+          // 1) 将两张图转成 base64 + mime（只发给自家后端，不暴露 Key）
           const [designImg, actualImg] = await Promise.all([
             fileToBase64(designFile),
             fileToBase64(actualFile),
           ]);
 
-          // 2) 组装 Gemini generateContent 请求体
-          const requestBody = {
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  { text: REVIEW_PROMPT },
-                  { text: "图 A（设计稿）" },
-                  {
-                    inline_data: {
-                      mime_type: designImg.mimeType,
-                      data: designImg.base64,
-                    },
-                  },
-                  { text: "图 B（实现稿）" },
-                  {
-                    inline_data: {
-                      mime_type: actualImg.mimeType,
-                      data: actualImg.base64,
-                    },
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              responseMimeType: "application/json",
-            },
+          const payload = {
+            designMimeType: designImg.mimeType,
+            designBase64: designImg.base64,
+            actualMimeType: actualImg.mimeType,
+            actualBase64: actualImg.base64,
           };
 
-          // 3) API Key 按要求放在 URL query 参数中
-          const url = `${API_URL}?key=${encodeURIComponent(apiKey)}`;
-          const resp = await fetch(url, {
+          // 2) 调用 Vercel 上的 /api/analyze，由后端代调 Gemini
+          const resp = await fetch("/api/analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
+            body: JSON.stringify(payload),
           });
 
-          const rawText = await resp.text();
-          if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}\n${rawText}`);
+          // 先读成文本再 JSON.parse，避免失败时无法读取错误详情
+          const responseText = await resp.text();
+          let data = null;
+          try {
+            data = responseText ? JSON.parse(responseText) : null;
+          } catch {
+            data = null;
           }
 
-          // 4) 解析模型返回的 JSON 结果（兼容可能的 code fence）
-          const parsed = parseGeminiResponse(rawText);
+          if (!resp.ok) {
+            const msg =
+              data && typeof data.error === "string" ? data.error : `HTTP ${resp.status}`;
+            const details =
+              data && typeof data.details === "string" && data.details
+                ? data.details
+                : responseText;
+            throw new Error(details && details !== "{}" ? `${msg}\n${details}` : msg);
+          }
+
+          if (!data || typeof data.rawText !== "string") {
+            throw new Error("服务器返回格式异常：缺少 rawText。");
+          }
+
+          // 3) 与直连 Gemini 时相同：解析外层响应里的模型 JSON
+          const parsed = parseGeminiResponse(data.rawText);
           renderReport(parsed);
           setLoading(false, "走查完成。");
           // 结果生成后平滑滚动到结果区域，提升交互体验
@@ -572,6 +520,7 @@
           resultSection.classList.remove("is-dimmed");
           loadingPanel.classList.remove("active");
           stopLoadingSteps();
+          updateUploadState();
         }
       }
 
@@ -735,201 +684,8 @@
           .replaceAll('"', "&quot;")
           .replaceAll("'", "&#39;");
       }
+
+      updateUploadState();
     </script>
-  </body>
-</html>
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpenCV.js 矩形检测 PoC</title>
-    <style>
-      body {
-        margin: 16px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      .controls {
-        margin-bottom: 12px;
-      }
-
-      .status {
-        margin-left: 10px;
-        font-size: 14px;
-      }
-
-      .panel {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      .box {
-        border: 1px solid #ddd;
-        padding: 8px;
-      }
-
-      .box h3 {
-        margin: 0 0 8px;
-        font-size: 15px;
-        font-weight: 600;
-      }
-
-      canvas {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        background: #f5f5f5;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>OpenCV.js 矩形检测（PoC）</h2>
-
-    <div class="controls">
-      <input id="imageInput" type="file" accept="image/*" />
-      <span id="status" class="status">正在加载 OpenCV.js...</span>
-    </div>
-
-    <div class="panel">
-      <div class="box">
-        <h3>原图</h3>
-        <canvas id="srcCanvas"></canvas>
-      </div>
-      <div class="box">
-        <h3>检测结果（绿色框）</h3>
-        <canvas id="dstCanvas"></canvas>
-      </div>
-    </div>
-
-    <script>
-      const imageInput = document.getElementById("imageInput");
-      const statusEl = document.getElementById("status");
-      const srcCanvas = document.getElementById("srcCanvas");
-      const dstCanvas = document.getElementById("dstCanvas");
-      const srcCtx = srcCanvas.getContext("2d");
-      const dstCtx = dstCanvas.getContext("2d");
-
-      let cvReady = false;
-
-      // OpenCV.js 加载完成后会调用这个函数
-      function onOpenCvReady() {
-        cv["onRuntimeInitialized"] = () => {
-          cvReady = true;
-          statusEl.textContent = "OpenCV.js 已就绪，请上传图片。";
-        };
-      }
-
-      imageInput.addEventListener("change", (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        if (!cvReady) {
-          statusEl.textContent = "OpenCV.js 还没加载完，请稍等再试。";
-          return;
-        }
-
-        const img = new Image();
-        img.onload = () => {
-          // 1) 把图片画到左侧 canvas（原图）
-          srcCanvas.width = img.width;
-          srcCanvas.height = img.height;
-          srcCtx.drawImage(img, 0, 0);
-
-          // 2) 先复制一份到右侧 canvas，后续在上面画绿色框
-          dstCanvas.width = img.width;
-          dstCanvas.height = img.height;
-          dstCtx.drawImage(img, 0, 0);
-
-          detectRectangles();
-        };
-
-        img.onerror = () => {
-          statusEl.textContent = "图片加载失败，请更换图片。";
-        };
-
-        // 用本地文件生成临时 URL，浏览器可直接读取
-        img.src = URL.createObjectURL(file);
-      });
-
-      function detectRectangles() {
-        statusEl.textContent = "正在检测矩形...";
-
-        // 从右侧 canvas 读取图像，后续在这个副本上画框
-        const src = cv.imread(dstCanvas);
-        const gray = new cv.Mat();
-        const blurred = new cv.Mat();
-        const edges = new cv.Mat();
-        const contours = new cv.MatVector();
-        const hierarchy = new cv.Mat();
-
-        try {
-          // 灰度化 -> 降噪 -> Canny 边缘检测（通用初始参数）
-          cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-          cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
-          cv.Canny(blurred, edges, 50, 150);
-
-          // 提取轮廓
-          cv.findContours(
-            edges,
-            contours,
-            hierarchy,
-            cv.RETR_EXTERNAL,
-            cv.CHAIN_APPROX_SIMPLE
-          );
-
-          let count = 0;
-
-          for (let i = 0; i < contours.size(); i++) {
-            const contour = contours.get(i);
-            const area = cv.contourArea(contour);
-
-            // 过滤太小区域，减少噪声
-            if (area < 800) {
-              contour.delete();
-              continue;
-            }
-
-            // 轮廓近似：把不规则边界近似成多边形
-            const peri = cv.arcLength(contour, true);
-            const approx = new cv.Mat();
-            cv.approxPolyDP(contour, approx, 0.02 * peri, true);
-
-            // 近似后是 4 个点，且凸包，认为是矩形候选
-            if (approx.rows === 4 && cv.isContourConvex(approx)) {
-              const rect = cv.boundingRect(approx);
-              const p1 = new cv.Point(rect.x, rect.y);
-              const p2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
-              cv.rectangle(src, p1, p2, new cv.Scalar(0, 255, 0, 255), 2);
-              count++;
-            }
-
-            approx.delete();
-            contour.delete();
-          }
-
-          cv.imshow(dstCanvas, src);
-          statusEl.textContent = `检测完成：找到 ${count} 个矩形候选区域。`;
-        } catch (err) {
-          console.error(err);
-          statusEl.textContent = "处理失败，请查看控制台错误信息。";
-        } finally {
-          src.delete();
-          gray.delete();
-          blurred.delete();
-          edges.delete();
-          contours.delete();
-          hierarchy.delete();
-        }
-      }
-    </script>
-
-    <!-- 通过 CDN 引入 OpenCV.js（纯前端，不需本地安装） -->
-    <script
-      async
-      src="https://docs.opencv.org/4.x/opencv.js"
-      onload="onOpenCvReady()"
-    ></script>
   </body>
 </html>
