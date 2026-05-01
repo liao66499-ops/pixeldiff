@@ -34,8 +34,9 @@
       }
 
       .container {
-        width: min(680px, 92vw);
-        margin: 18px auto 40px;
+        width: min(1080px, 100vw);
+        margin: 60px auto 40px;
+        padding: 0 24px;
       }
 
       .shell {
@@ -43,6 +44,7 @@
         border: 0.5px solid var(--border);
         border-radius: 12px;
         overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
       }
 
       /* 顶部导航栏 */
@@ -135,12 +137,12 @@
       /* Hero 文案区 */
       .hero {
         text-align: center;
-        padding: 28px 20px;
+        padding: 40px 20px;
       }
 
       .hero-title {
         margin: 0 0 8px;
-        font-size: 22px;
+        font-size: 32px;
         font-weight: 500;
         letter-spacing: -0.01em;
       }
@@ -148,7 +150,7 @@
       .hero-subtitle {
         margin: 0;
         color: var(--sub-text);
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 400;
         line-height: 1.6;
       }
@@ -169,6 +171,7 @@
         border: 1.5px dashed;
         border-radius: 12px;
         padding: 32px 16px;
+        min-height: 220px;
         text-align: center;
         cursor: pointer;
         position: relative;
@@ -194,10 +197,10 @@
       }
 
       .upload-icon-wrap {
-        width: 36px;
-        height: 36px;
+        width: 44px;
+        height: 44px;
         border-radius: 10px;
-        margin: 0 auto 10px;
+        margin: 0 auto 16px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -213,7 +216,7 @@
 
       .upload-title {
         margin: 0 0 6px;
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 500;
       }
 
@@ -262,16 +265,17 @@
         background: #1677ff;
         color: #fff;
         border-radius: 10px;
-        height: 44px;
+        height: 52px;
         width: 100%;
         padding: 0 16px;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 500;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        border-radius: 12px;
       }
 
       .btn-inner {
@@ -654,7 +658,7 @@
           <div id="errorCardBody" class="error-card-body"></div>
         </div>
 
-        <div class="summary">
+        <div id="result-summary" class="summary" style="display: none">
           <div class="summary-card">
             <div class="summary-label">总差异数</div>
             <div id="totalIssues" class="summary-value">-</div>
@@ -678,6 +682,7 @@
       const errorBox = document.getElementById("errorBox");
       const totalIssues = document.getElementById("totalIssues");
       const score = document.getElementById("score");
+      const resultSummary = document.getElementById("result-summary");
       const issuesList = document.getElementById("issuesList");
       const loadingPanel = document.getElementById("loadingPanel");
       const loadingStep = document.getElementById("loadingStep");
@@ -910,6 +915,8 @@
       }
 
       function renderReport(report) {
+        // 有走查结果后再显示顶部总览卡片，避免空状态占位
+        resultSummary.style.display = "grid";
         const issueCount = Number(report.summary.total_issues ?? report.issues.length ?? 0);
         const scoreValue = Number(report.summary.consistency_score ?? 0);
         totalIssues.textContent = Number.isFinite(issueCount) ? String(issueCount) : "-";
