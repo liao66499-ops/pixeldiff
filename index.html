@@ -47,6 +47,8 @@
         overflow: hidden;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
         min-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
       }
 
       /* 顶部导航栏 */
@@ -568,22 +570,28 @@
         grid-template-columns: 30% 30% 40%;
         gap: 16px;
         padding: 16px;
-        min-height: calc(100vh - 100px);
+        min-height: 0;
         height: 100%;
+        flex: 1;
       }
 
       .work-col {
         min-width: 0;
+        min-height: 0;
+        height: 100%;
+        overflow: hidden;
       }
 
       /* 左中两栏上传区 */
       .upload-col {
         border: 1.5px dashed;
         border-radius: 12px;
-        min-height: 600px;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         position: relative;
+        height: 100%;
+        overflow: hidden;
       }
 
       .design-col {
@@ -634,18 +642,17 @@
         align-items: center;
         justify-content: center;
         position: relative;
+        min-height: 0;
+        overflow: hidden;
       }
 
       .upload-empty {
         text-align: center;
       }
 
+      /* 隐藏原生 file input，避免出现“未选择任何文件”原生按钮 */
       .upload-col .file-input {
-        position: absolute;
-        inset: 0;
-        opacity: 0;
-        cursor: pointer;
-        z-index: 2;
+        display: none;
       }
 
       .upload-col .upload-icon-wrap {
@@ -670,9 +677,10 @@
 
       .upload-col .preview {
         margin-top: 0;
-        width: 100%;
-        height: 100%;
-        max-height: none;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
         object-fit: contain;
         display: none;
         z-index: 1;
@@ -685,9 +693,11 @@
         background: #fff;
         display: flex;
         flex-direction: column;
-        min-height: 600px;
+        min-height: 0;
         margin-top: 0;
         opacity: 1;
+        height: 100%;
+        overflow: hidden;
       }
 
       .review-head {
@@ -885,7 +895,7 @@
               <span class="upload-col-title">设计稿</span>
               <button id="designReupload" class="mini-reupload" type="button">重新上传</button>
             </div>
-            <div class="upload-col-body">
+            <div id="designDropzone" class="upload-col-body">
               <input id="designInput" class="file-input" type="file" accept="image/*" />
               <div id="designEmpty" class="upload-empty">
                 <div class="upload-icon-wrap" aria-hidden="true">
@@ -908,7 +918,7 @@
               <span class="upload-col-title">实现稿</span>
               <button id="actualReupload" class="mini-reupload" type="button">重新上传</button>
             </div>
-            <div class="upload-col-body">
+            <div id="actualDropzone" class="upload-col-body">
               <input id="actualInput" class="file-input" type="file" accept="image/*" />
               <div id="actualEmpty" class="upload-empty">
                 <div class="upload-icon-wrap" aria-hidden="true">
@@ -983,6 +993,8 @@
       const actualInput = document.getElementById("actualInput");
       const designPreview = document.getElementById("designPreview");
       const actualPreview = document.getElementById("actualPreview");
+      const designDropzone = document.getElementById("designDropzone");
+      const actualDropzone = document.getElementById("actualDropzone");
       const designEmpty = document.getElementById("designEmpty");
       const actualEmpty = document.getElementById("actualEmpty");
       const designReupload = document.getElementById("designReupload");
@@ -1060,6 +1072,15 @@
       // 仅用于触发原有 input 选择，不改变上传逻辑
       designReupload.addEventListener("click", () => designInput.click());
       actualReupload.addEventListener("click", () => actualInput.click());
+      // 点击整块上传区域也可触发选择器（input 本身隐藏）
+      designDropzone.addEventListener("click", (event) => {
+        if (event.target.closest("#designReupload")) return;
+        designInput.click();
+      });
+      actualDropzone.addEventListener("click", (event) => {
+        if (event.target.closest("#actualReupload")) return;
+        actualInput.click();
+      });
 
       designInput.addEventListener("change", () =>
         handleFileChange(designInput, designPreview, "设计稿")
