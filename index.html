@@ -774,10 +774,11 @@
         overflow: hidden;
       }
 
-      /* 初始态：上说明、下按钮组；底边与左/中上传矩形底对齐（见 .cta-footer padding-bottom） */
+      /* 初始态：说明区在上方弹性空间内垂直居中，按钮组 margin-top:auto 贴底；底边对齐见 .cta-footer padding-bottom */
       .workspace--landing .review-col {
-        justify-content: space-between;
-        padding: 0 8px;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 0;
       }
 
       .workspace--report .review-col {
@@ -795,11 +796,13 @@
       }
 
       .workspace--landing .action-hints {
-        flex: 0 0 auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0 var(--page-inline);
         justify-content: center;
-        padding: 0 32px;
-        max-width: 340px;
-        margin: 0 auto;
       }
 
       .action-hints.is-hidden {
@@ -808,25 +811,30 @@
 
       .hint-line1 {
         margin: 0;
-        font-size: 15px;
-        line-height: 1.75;
-        color: #6b7280;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.8;
+        color: #1f2937;
+        text-align: center;
       }
 
       .hint-line2 {
         margin: 0;
-        font-size: 17px;
-        line-height: 1.75;
-        color: #6b7280;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.8;
+        color: #1f2937;
+        text-align: center;
       }
 
       .hint-gradient {
-        font-weight: 600;
-        color: #3377ff;
-        background: none;
-        -webkit-background-clip: unset;
-        background-clip: unset;
-        -webkit-text-fill-color: currentColor;
+        font-size: inherit;
+        font-weight: 500;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
       }
 
       .report-wrap {
@@ -874,6 +882,8 @@
         justify-content: flex-end;
         align-items: center;
         width: 100%;
+        /* 与左侧设计稿到页面左缘距离一致（:root --page-inline） */
+        margin-right: var(--page-inline);
       }
 
       .workspace--report .cta-footer {
