@@ -759,6 +759,69 @@
         z-index: 2;
       }
 
+      .partial-hint {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .bbox-overlay {
+        position: absolute;
+        inset: 0;
+        cursor: crosshair;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      .bbox-overlay.active {
+        pointer-events: auto;
+      }
+
+      .partial-bbox {
+        position: absolute;
+        border: 2px dashed #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+        pointer-events: none;
+      }
+
+      .action-btn-text {
+        background: white;
+        border: 1.5px solid #6b7280;
+        color: #6b7280;
+        padding: 0 24px;
+        height: 56px;
+        border-radius: 12px;
+        font-size: 16px;
+        cursor: pointer;
+        box-sizing: border-box;
+      }
+
+      .action-btn-primary {
+        height: 56px;
+        padding: 0 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        color: #fff;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        box-sizing: border-box;
+      }
+
+      .action-btn-primary[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
       /* 右栏：说明 + 报告 + 底部按钮 */
       .review-col {
         border: none;
@@ -1344,6 +1407,10 @@
           </div>
         </header>
 
+        <div id="partialHint" class="partial-hint" style="display: none">
+          <span id="partialHintText">请在设计稿上框选要走查的区域</span>
+        </div>
+
         <!-- 主体：初始 35/35/30，走查后 30/30/40 -->
         <section id="workspace" class="workspace workspace--landing">
           <article class="work-col upload-col design-col">
@@ -1359,6 +1426,7 @@
               <div class="img-stage" id="designStage">
                 <img id="designPreview" class="preview preview-img" alt="设计稿预览" />
                 <div class="bbox-layer" id="designBboxLayer"></div>
+                <div class="bbox-overlay" data-target="design"></div>
               </div>
             </div>
           </article>
@@ -1376,6 +1444,7 @@
               <div class="img-stage" id="actualStage">
                 <img id="actualPreview" class="preview preview-img" alt="开发稿预览" />
                 <div class="bbox-layer" id="actualBboxLayer"></div>
+                <div class="bbox-overlay" data-target="dev"></div>
               </div>
             </div>
           </article>
@@ -1424,8 +1493,27 @@
                   src="btn-partial-disabled.png"
                   alt="局部走查"
                   class="action-btn disabled"
-                  onclick="handlePartialClick()"
+                  onclick="enterPartialMode()"
                 />
+                <button
+                  type="button"
+                  id="btnPartialCancel"
+                  class="action-btn-text"
+                  style="display: none"
+                  onclick="cancelPartial()"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  id="btnPartialStart"
+                  class="action-btn-primary"
+                  style="display: none"
+                  disabled
+                  onclick="startPartialAnalysis()"
+                >
+                  开始局部分析
+                </button>
                 <button
                   type="button"
                   id="btnReupload"
@@ -1482,8 +1570,13 @@
       const resultSection = document.querySelector(".result");
       const errorCard = document.getElementById("errorCard");
       const errorCardBody = document.getElementById("errorCardBody");
+      const partialHint = document.getElementById("partialHint");
+      const partialHintText = document.getElementById("partialHintText");
+      const btnPartialCancel = document.getElementById("btnPartialCancel");
+      const btnPartialStart = document.getElementById("btnPartialStart");
 
       function enterReportLayout() {
+        cancelPartial();
         workspaceEl.classList.remove("workspace--landing");
         workspaceEl.classList.add("workspace--report");
         actionHints.classList.add("is-hidden");
@@ -1492,6 +1585,7 @@
       }
 
       function resetToLandingLayout() {
+        cancelPartial();
         workspaceEl.classList.remove("workspace--report");
         workspaceEl.classList.add("workspace--landing");
         actionHints.classList.remove("is-hidden");
@@ -1505,6 +1599,7 @@
         if (!btnStart || !btnPartial || !btnReupload) return;
         if (mode === "report-done") {
           ctaShowingReupload = true;
+          cancelPartial();
           btnStart.style.display = "none";
           btnPartial.style.display = "none";
           btnReupload.style.display = "block";
@@ -1515,6 +1610,169 @@
           btnReupload.style.display = "none";
         }
       }
+
+      let partialState = "idle";
+      let designBbox = null;
+      let devBbox = null;
+      let partialDrag = null;
+
+      function detachPartialDragListeners() {
+        window.removeEventListener("mousemove", onPartialDragMove);
+        window.removeEventListener("mouseup", onPartialDragEnd);
+      }
+
+      function onPartialDragMove(e) {
+        if (!partialDrag) return;
+        const rect = partialDrag.overlay.getBoundingClientRect();
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+        const sx = partialDrag.startX;
+        const sy = partialDrag.startY;
+        const w = Math.abs(x - sx);
+        const h = Math.abs(y - sy);
+        const left = Math.min(x, sx);
+        const top = Math.min(y, sy);
+        partialDrag.el.style.left = left + "px";
+        partialDrag.el.style.top = top + "px";
+        partialDrag.el.style.width = w + "px";
+        partialDrag.el.style.height = h + "px";
+      }
+
+      function onPartialDragEnd() {
+        detachPartialDragListeners();
+        const pd = partialDrag;
+        partialDrag = null;
+        if (!pd) return;
+        const { overlay, target, el } = pd;
+        const rect = overlay.getBoundingClientRect();
+        const left = parseFloat(el.style.left) || 0;
+        const top = parseFloat(el.style.top) || 0;
+        const w = parseFloat(el.style.width) || 0;
+        const h = parseFloat(el.style.height) || 0;
+        const bboxData = {
+          x: left / rect.width,
+          y: top / rect.height,
+          w: w / rect.width,
+          h: h / rect.height,
+        };
+        if (bboxData.w < 0.02 || bboxData.h < 0.02) {
+          el.remove();
+          return;
+        }
+        if (target === "design") {
+          designBbox = bboxData;
+          partialState = "selecting-dev";
+        } else {
+          devBbox = bboxData;
+          partialState = "ready";
+        }
+        updateHint();
+        if (partialState === "ready") {
+          btnPartialStart.disabled = false;
+        }
+      }
+
+      function updateHint() {
+        if (!partialHintText) return;
+        const map = {
+          "selecting-design": "请在设计稿上框选要走查的区域",
+          "selecting-dev": "请在开发稿上框选对应区域",
+          ready: '已选定区域，点击「开始局部分析」',
+        };
+        partialHintText.textContent = map[partialState] || "";
+      }
+
+      function enterPartialMode() {
+        if (!btnPartial || btnPartial.classList.contains("disabled")) return;
+        if (!designPreview.src || !actualPreview.src) {
+          alert("请先上传两张图片");
+          return;
+        }
+        if (loadingPanel.classList.contains("active") || ctaShowingReupload) return;
+        partialState = "selecting-design";
+        designBbox = null;
+        devBbox = null;
+        btnStart.style.display = "none";
+        btnPartial.style.display = "none";
+        btnPartialCancel.style.display = "block";
+        btnPartialStart.style.display = "block";
+        btnPartialStart.disabled = true;
+        partialHint.style.display = "block";
+        document.querySelectorAll(".bbox-overlay").forEach((el) => {
+          el.classList.add("active");
+        });
+        document.querySelectorAll(".partial-bbox").forEach((el) => el.remove());
+        updateHint();
+      }
+
+      function cancelPartial() {
+        detachPartialDragListeners();
+        partialDrag = null;
+        partialState = "idle";
+        designBbox = null;
+        devBbox = null;
+        if (btnPartialStart) {
+          btnPartialStart.disabled = true;
+          btnPartialStart.style.display = "none";
+        }
+        if (btnPartialCancel) btnPartialCancel.style.display = "none";
+        if (partialHint) partialHint.style.display = "none";
+        document.querySelectorAll(".bbox-overlay").forEach((el) => el.classList.remove("active"));
+        document.querySelectorAll(".partial-bbox").forEach((el) => el.remove());
+        if (!ctaShowingReupload) {
+          if (btnStart) btnStart.style.display = "";
+          if (btnPartial) btnPartial.style.display = "";
+        }
+        updateButtonState();
+      }
+
+      function startPartialAnalysis() {
+        if (partialState !== "ready" || btnPartialStart.disabled) return;
+        console.log("局部走查触发,框数据:", { designBbox, devBbox });
+        alert(
+          "画框成功!坐标:\n设计稿: " +
+            JSON.stringify(designBbox) +
+            "\n开发稿: " +
+            JSON.stringify(devBbox)
+        );
+      }
+
+      function setupPartialOverlays() {
+        document.querySelectorAll(".bbox-overlay").forEach((overlay) => {
+          const target = overlay.dataset.target;
+          overlay.addEventListener("mousedown", (e) => {
+            if (!overlay.classList.contains("active")) return;
+            if (target === "design" && partialState !== "selecting-design") return;
+            if (target === "dev" && partialState !== "selecting-dev" && partialState !== "ready") return;
+            e.preventDefault();
+            e.stopPropagation();
+            overlay.querySelectorAll(".partial-bbox").forEach((el) => el.remove());
+            const rect = overlay.getBoundingClientRect();
+            const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            const y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+            const el = document.createElement("div");
+            el.className = "partial-bbox";
+            el.style.left = x + "px";
+            el.style.top = y + "px";
+            el.style.width = "0";
+            el.style.height = "0";
+            overlay.appendChild(el);
+            partialDrag = {
+              overlay,
+              target,
+              el,
+              startX: x,
+              startY: y,
+            };
+            window.addEventListener("mousemove", onPartialDragMove);
+            window.addEventListener("mouseup", onPartialDragEnd);
+          });
+        });
+      }
+
+      window.enterPartialMode = enterPartialMode;
+      window.cancelPartial = cancelPartial;
+      window.startPartialAnalysis = startPartialAnalysis;
 
       let designFile = null;
       let actualFile = null;
@@ -1636,6 +1894,7 @@
       function updateButtonState() {
         if (!btnStart || !btnPartial || !btnReupload) return;
         if (ctaShowingReupload) return;
+        if (partialState !== "idle") return;
         const loading = loadingPanel.classList.contains("active");
         const ready = !!(designFile && actualFile);
         if (loading || !ready) {
@@ -1717,9 +1976,11 @@
 
       // 点击整块上传区域也可触发选择器（input 本身隐藏）
       designDropzone.addEventListener("click", () => {
+        if (partialState !== "idle") return;
         designInput.click();
       });
       actualDropzone.addEventListener("click", () => {
+        if (partialState !== "idle") return;
         actualInput.click();
       });
 
@@ -1729,11 +1990,6 @@
       actualInput.addEventListener("change", () =>
         handleFileChange(actualInput, actualPreview, "开发稿")
       );
-
-      function handlePartialClick() {
-        if (btnPartial.classList.contains("disabled")) return;
-        showError("局部走查功能即将开放，敬请期待。");
-      }
 
       async function handleStartClick() {
         if (btnStart.classList.contains("disabled")) return;
@@ -2318,6 +2574,7 @@
         { passive: true }
       );
 
+      setupPartialOverlays();
       updateUploadState();
     </script>
   </body>
