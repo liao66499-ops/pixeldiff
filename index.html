@@ -986,6 +986,11 @@
         padding: 16px 18px;
       }
 
+      /* 走查分析中：去掉顶内边距，使加载卡片与左侧上传矩形顶对齐 */
+      .review-body:has(.loading-panel.active) {
+        padding-top: 0;
+      }
+
       .review-body::-webkit-scrollbar {
         width: 6px;
       }
@@ -1840,8 +1845,8 @@
       function setLoading(loading, text) {
         if (loading) {
           clearBboxes();
-          statusText.innerHTML = `<span class="spinner"></span>${escapeHtml(text)}`;
-          statusText.style.display = "flex";
+          statusText.textContent = "";
+          statusText.style.display = "none";
           issuesList.style.display = "none";
           resultSection.classList.add("is-dimmed");
           loadingPanel.classList.add("active");
