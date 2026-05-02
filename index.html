@@ -570,9 +570,6 @@
       }
 
       .workspace--landing {
-        /* 与左/中上传格同高的可视区域高度、上传矩形近似高度，用于右栏按钮底与矩形底对齐 */
-        --cell-h: calc(100dvh - 64px - 48px - 56px);
-        --upload-rect-h: min(80vh, calc(100dvh - 64px - 40px));
         grid-template-columns: 35% 35% 30%;
         padding: 48px var(--page-inline) 56px;
         column-gap: calc(var(--page-inline) / 2);
@@ -598,15 +595,23 @@
         overflow: hidden;
       }
 
+      .workspace--landing > .work-col {
+        height: auto;
+      }
+
       /* 设计稿与导航左缘对齐；开发稿仍在列内居中 */
       .workspace--landing .upload-col {
         width: min(100%, 620px);
         justify-self: center;
         align-self: center;
-        /* 与 --upload-rect-h 一致，固定矩形高度，避免长图撑高栏位 */
-        height: var(--upload-rect-h);
-        min-height: var(--upload-rect-h);
-        max-height: var(--upload-rect-h);
+        height: auto;
+        min-height: 400px;
+        max-height: none;
+      }
+
+      /* 已上传时高度随图走，短图不必维持 400px 占位高 */
+      .workspace--landing .upload-col:has(img.preview[src]) {
+        min-height: 0;
       }
 
       .workspace--landing .upload-col.design-col {
@@ -682,10 +687,11 @@
         padding: 80px 64px;
       }
 
-      /* 已上传：去 padding + 交叉轴拉满，避免 align-items:center 随图片 intrinsic 撑高 */
+      /* 已上传：去 padding；顶部对齐，矩形高度随图片 intrinsic 变化，便于画框与 getBoundingClientRect 一致 */
       .upload-col-body:has(img.preview[src]) {
         padding: 0;
-        align-items: stretch;
+        align-items: flex-start;
+        flex: 0 1 auto;
       }
 
       .upload-empty {
@@ -738,13 +744,9 @@
       .upload-col .preview {
         margin-top: 0;
         min-width: 0;
-        min-height: 0;
         max-width: 100%;
-        max-height: 100%;
         width: 100%;
-        height: 100%;
-        object-fit: contain;
-        object-position: center;
+        height: auto;
         background: transparent;
         display: none;
         z-index: 1;
@@ -757,14 +759,14 @@
       }
 
       .img-stage {
-        flex: 1;
+        flex: 0 1 auto;
         min-height: 0;
         width: 100%;
         display: none;
-        align-items: stretch;
-        justify-content: stretch;
+        align-items: flex-start;
+        justify-content: flex-start;
         position: relative;
-        overflow: hidden;
+        overflow: visible;
       }
 
       /* 右栏：说明 + 报告 + 底部按钮 */
@@ -879,7 +881,7 @@
         max-width: none;
         margin: 0;
         margin-top: auto;
-        padding: 0 0 max(0px, calc((var(--cell-h) - var(--upload-rect-h)) / 2));
+        padding: 0 0 56px;
       }
 
       /* 与顶栏大致对齐后再整体左移 60px（20 + 40） */
@@ -1077,8 +1079,6 @@
         .workspace--landing {
           column-gap: 0;
           row-gap: calc(var(--page-inline) / 2);
-          --cell-h: calc(100dvh - 64px - 48px - 48px);
-          --upload-rect-h: 360px;
         }
 
         .workspace--landing > .work-col:not(:last-child),
@@ -1092,9 +1092,13 @@
           max-width: none;
           justify-self: stretch;
           align-self: stretch;
-          height: var(--upload-rect-h);
-          min-height: var(--upload-rect-h);
-          max-height: var(--upload-rect-h);
+          height: auto;
+          min-height: 400px;
+          max-height: none;
+        }
+
+        .workspace--landing .upload-col:has(img.preview[src]) {
+          min-height: 0;
         }
 
         .workspace--landing .cta-footer {
