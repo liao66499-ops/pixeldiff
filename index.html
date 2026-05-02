@@ -1037,6 +1037,16 @@
         margin-bottom: 0;
       }
 
+      .issue-severity-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: #6b7280;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        padding: 2px 6px;
+      }
+
       .badge {
         width: 20px;
         min-width: 20px;
@@ -1603,7 +1613,20 @@
         "正在对比差异...",
         "生成报告中...",
       ];
-      const BBOX_COLORS = ["#FF4D4F", "#FA8C16", "#1677FF", "#52C41A", "#722ED1"];
+      const BBOX_COLORS = [
+        "#EF4444", // #1 红
+        "#F59E0B", // #2 橙
+        "#3B82F6", // #3 蓝
+        "#10B981", // #4 绿
+        "#8B5CF6", // #5 紫
+        "#EC4899", // #6 粉
+        "#14B8A6", // #7 青
+        "#F97316", // #8 深橙
+      ];
+
+      function getBboxColor(index) {
+        return BBOX_COLORS[index % BBOX_COLORS.length];
+      }
 
       function updateButtonState() {
         if (!btnStart || !btnPartial || !btnReupload) return;
@@ -1914,13 +1937,6 @@
         layer.style.height = displayH + "px";
       }
 
-      function getIssueColor(item, idx) {
-        if (item?.severity === "高") return "#ff4d4f";
-        if (item?.severity === "中") return "#fa8c16";
-        if (item?.severity === "低") return "#faad14";
-        return BBOX_COLORS[idx % BBOX_COLORS.length];
-      }
-
       function drawBboxOnImage(img, bbox, color, num, dashed) {
         if (!img || !bbox) return;
         const rect = img.getBoundingClientRect();
@@ -1976,7 +1992,7 @@
         }
 
         issues.forEach((issue, i) => {
-          const color = BBOX_COLORS[i % BBOX_COLORS.length];
+          const color = getBboxColor(i);
           const num = i + 1;
           if (issue.bbox_actual) {
             drawBboxOnImage(actualImg, issue.bbox_actual, color, num, false);
@@ -2066,7 +2082,7 @@
           card.className = "issue-card";
 
           const typeColor = getTypeColor(item.type);
-          const issueColor = getIssueColor(item, idx);
+          const badgeColor = getBboxColor(idx);
           const bottomInfo =
             item.design_value || item.actual_value
               ? `<div class="meta-line">${
@@ -2081,10 +2097,11 @@
               : "";
           card.innerHTML = `
             <div class="issue-head">
-              <span class="badge" style="background:${issueColor};">#${escapeHtml(String(item.id ?? idx + 1))}</span>
+              <span class="badge" style="background:${badgeColor};">#${escapeHtml(String(item.id ?? idx + 1))}</span>
               <span class="tag" style="background:${typeColor.bg};color:${typeColor.text};">${escapeHtml(
             String(item.type || "其他")
           )}</span>
+              <span class="issue-severity-label">${escapeHtml(String(item.severity || "未标注"))}严重度</span>
             </div>
             <div class="issue-title">${escapeHtml(String(item.title || "未命名问题"))}</div>
             <div class="desc-line">${escapeHtml(String(item.location || "-"))} · ${escapeHtml(
