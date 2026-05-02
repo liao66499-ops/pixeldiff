@@ -397,8 +397,8 @@
       }
 
       .issue-card {
-        background: var(--card);
-        border: 1px solid var(--border);
+        background: #fff;
+        border: 1px solid #e5e7eb;
         border-radius: 12px;
         padding: 14px;
       }
@@ -646,27 +646,6 @@
       .dev-col {
         background: #fff7ed;
         border: 0.5px dashed #ffccc2;
-      }
-
-      .mini-reupload {
-        display: none;
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        z-index: 4;
-        border: 0;
-        background: rgba(255, 255, 255, 0.92);
-        color: #6b7280;
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: 500;
-        padding: 6px 10px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-      }
-
-      .mini-reupload:hover {
-        color: #111827;
       }
 
       .upload-col-body {
@@ -942,6 +921,28 @@
         max-width: 100%;
       }
 
+      /* 走查完成后：单按钮「重新上传」替代双 PNG */
+      .btn-reupload-main {
+        display: none;
+        width: 372px;
+        height: 56px;
+        border: 0;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        flex-shrink: 0;
+      }
+
+      .btn-reupload-main:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+      }
+
       .action-btn {
         display: block;
         cursor: not-allowed;
@@ -1010,9 +1011,9 @@
 
       .issue-card {
         position: relative;
-        overflow: hidden;
-        border: 0.5px solid #e5e8ef;
-        border-radius: 8px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
         padding: 12px 14px;
       }
 
@@ -1313,7 +1314,6 @@
           <article class="work-col upload-col design-col">
             <div id="designDropzone" class="upload-col-body">
               <input id="designInput" class="file-input" type="file" accept="image/*" />
-              <button id="designReupload" class="mini-reupload" type="button">重新上传</button>
               <div id="designEmpty" class="upload-empty">
                 <div class="upload-plus" aria-hidden="true">+</div>
                 <p class="upload-hero-title">
@@ -1331,7 +1331,6 @@
           <article class="work-col upload-col dev-col">
             <div id="actualDropzone" class="upload-col-body">
               <input id="actualInput" class="file-input" type="file" accept="image/*" />
-              <button id="actualReupload" class="mini-reupload" type="button">重新上传</button>
               <div id="actualEmpty" class="upload-empty">
                 <div class="upload-plus" aria-hidden="true">+</div>
                 <p class="upload-hero-title">
@@ -1392,6 +1391,15 @@
                   class="action-btn disabled"
                   onclick="handlePartialClick()"
                 />
+                <button
+                  type="button"
+                  id="btnReupload"
+                  class="btn-reupload-main"
+                  style="display: none"
+                  onclick="handleReuploadMainClick()"
+                >
+                  重新上传
+                </button>
               </div>
             </div>
           </section>
@@ -1425,10 +1433,9 @@
       const actualDropzone = document.getElementById("actualDropzone");
       const designEmpty = document.getElementById("designEmpty");
       const actualEmpty = document.getElementById("actualEmpty");
-      const designReupload = document.getElementById("designReupload");
-      const actualReupload = document.getElementById("actualReupload");
       const btnStart = document.getElementById("btnStart");
       const btnPartial = document.getElementById("btnPartial");
+      const btnReupload = document.getElementById("btnReupload");
       const workspaceEl = document.getElementById("workspace");
       const actionHints = document.getElementById("actionHints");
       const resultPanel = document.getElementById("resultPanel");
@@ -1446,6 +1453,7 @@
         workspaceEl.classList.add("workspace--report");
         actionHints.classList.add("is-hidden");
         resultPanel.classList.add("is-visible");
+        setCtaRowMode("default");
       }
 
       function resetToLandingLayout() {
@@ -1453,6 +1461,24 @@
         workspaceEl.classList.add("workspace--landing");
         actionHints.classList.remove("is-hidden");
         resultPanel.classList.remove("is-visible");
+        setCtaRowMode("default");
+      }
+
+      let ctaShowingReupload = false;
+
+      function setCtaRowMode(mode) {
+        if (!btnStart || !btnPartial || !btnReupload) return;
+        if (mode === "report-done") {
+          ctaShowingReupload = true;
+          btnStart.style.display = "none";
+          btnPartial.style.display = "none";
+          btnReupload.style.display = "block";
+        } else {
+          ctaShowingReupload = false;
+          btnStart.style.display = "";
+          btnPartial.style.display = "";
+          btnReupload.style.display = "none";
+        }
       }
 
       let designFile = null;
@@ -1560,7 +1586,8 @@
       const BBOX_COLORS = ["#FF4D4F", "#FA8C16", "#1677FF", "#52C41A", "#722ED1"];
 
       function updateButtonState() {
-        if (!btnStart || !btnPartial) return;
+        if (!btnStart || !btnPartial || !btnReupload) return;
+        if (ctaShowingReupload) return;
         const loading = loadingPanel.classList.contains("active");
         const ready = !!(designFile && actualFile);
         if (loading || !ready) {
@@ -1601,7 +1628,6 @@
           if (kind === "设计稿") {
             designFile = null;
             designEmpty.style.display = "";
-            designReupload.style.display = "none";
             designStage.style.display = "none";
             designPreview.removeAttribute("src");
             designPreview.style.display = "none";
@@ -1609,7 +1635,6 @@
           if (kind === "开发稿") {
             actualFile = null;
             actualEmpty.style.display = "";
-            actualReupload.style.display = "none";
             actualStage.style.display = "none";
             actualPreview.removeAttribute("src");
             actualPreview.style.display = "none";
@@ -1632,28 +1657,21 @@
         if (kind === "设计稿") {
           designFile = file;
           designEmpty.style.display = "none";
-          designReupload.style.display = "inline-flex";
           designStage.style.display = "flex";
         }
         if (kind === "开发稿") {
           actualFile = file;
           actualEmpty.style.display = "none";
-          actualReupload.style.display = "inline-flex";
           actualStage.style.display = "flex";
         }
         updateUploadState();
       }
 
-      // 仅用于触发原有 input 选择，不改变上传逻辑
-      designReupload.addEventListener("click", () => designInput.click());
-      actualReupload.addEventListener("click", () => actualInput.click());
       // 点击整块上传区域也可触发选择器（input 本身隐藏）
-      designDropzone.addEventListener("click", (event) => {
-        if (event.target.closest("#designReupload")) return;
+      designDropzone.addEventListener("click", () => {
         designInput.click();
       });
-      actualDropzone.addEventListener("click", (event) => {
-        if (event.target.closest("#actualReupload")) return;
+      actualDropzone.addEventListener("click", () => {
         actualInput.click();
       });
 
@@ -1877,6 +1895,9 @@
       }
 
       function getIssueColor(item, idx) {
+        if (item?.severity === "高") return "#ff4d4f";
+        if (item?.severity === "中") return "#fa8c16";
+        if (item?.severity === "低") return "#faad14";
         return BBOX_COLORS[idx % BBOX_COLORS.length];
       }
 
@@ -2016,6 +2037,7 @@
           card.className = "issue-card";
           card.textContent = "没有发现明显差异。";
           issuesList.appendChild(card);
+          setCtaRowMode("report-done");
           return;
         }
 
@@ -2023,7 +2045,6 @@
           const card = document.createElement("article");
           card.className = "issue-card";
 
-          const sevColor = getSeverityColor(item.severity);
           const typeColor = getTypeColor(item.type);
           const issueColor = getIssueColor(item, idx);
           const bottomInfo =
@@ -2039,7 +2060,6 @@
                 }</div>`
               : "";
           card.innerHTML = `
-            <div class="issue-level-line" style="position:absolute;left:0;top:0;width:3px;height:100%;background:${sevColor.text};border-radius:8px 0 0 8px;"></div>
             <div class="issue-head">
               <span class="badge" style="background:${issueColor};">#${escapeHtml(String(item.id ?? idx + 1))}</span>
               <span class="tag" style="background:${typeColor.bg};color:${typeColor.text};">${escapeHtml(
@@ -2058,6 +2078,7 @@
 
           issuesList.appendChild(card);
         });
+        setCtaRowMode("report-done");
       }
 
       function loadImageElement(img, src) {
@@ -2084,8 +2105,6 @@
 
         designEmpty.style.display = "none";
         actualEmpty.style.display = "none";
-        designReupload.style.display = "inline-flex";
-        actualReupload.style.display = "inline-flex";
         designStage.style.display = "flex";
         actualStage.style.display = "flex";
 
@@ -2175,6 +2194,27 @@
         });
       }
 
+      function handleReuploadMainClick() {
+        if (!ctaShowingReupload) return;
+        designFile = null;
+        actualFile = null;
+        designInput.value = "";
+        actualInput.value = "";
+        designPreview.removeAttribute("src");
+        actualPreview.removeAttribute("src");
+        designPreview.style.display = "none";
+        actualPreview.style.display = "none";
+        designEmpty.style.display = "";
+        actualEmpty.style.display = "";
+        designStage.style.display = "none";
+        actualStage.style.display = "none";
+        window._lastIssues = null;
+        updateUploadState();
+        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      }
+
+      window.handleReuploadMainClick = handleReuploadMainClick;
+
       function openHistoryDrawer() {
         renderHistoryList();
         const drawer = document.getElementById("historyDrawer");
@@ -2190,16 +2230,6 @@
 
       window.openHistoryDrawer = openHistoryDrawer;
       window.closeHistoryDrawer = closeHistoryDrawer;
-
-      function getSeverityColor(severity) {
-        if (severity === "高") {
-          return { bg: "#fff1f0", text: "#ff4d4f" };
-        }
-        if (severity === "中") {
-          return { bg: "#fff7e8", text: "#fa8c16" };
-        }
-        return { bg: "#fffbe6", text: "#faad14" };
-      }
 
       function getTypeColor(type) {
         if (type === "颜色" || type === "背景" || type === "位置" || type === "缺失元素") {
