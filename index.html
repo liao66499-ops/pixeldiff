@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PixelDiff - AI 设计走查工具</title>
+    <title>设计走查平台</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='24' height='24' rx='6' fill='%231677FF'/%3E%3C/svg%3E"
@@ -65,63 +65,31 @@
       .top-nav {
         flex-shrink: 0;
         width: 100%;
-        height: 56px;
+        height: 64px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 16px;
-        border-bottom: 1px solid #e9edf3;
+        padding: 0 32px;
+        border-bottom: 1px solid #f3f4f6;
+        background: #ffffff;
       }
 
       .brand {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
       }
 
-      .brand-logo {
-        width: 24px;
-        height: 24px;
-        border-radius: 6px;
-        background: #1677ff;
-        position: relative;
-      }
-
-      .brand-logo::before,
-      .brand-logo::after {
-        content: "";
-        width: 8px;
-        height: 8px;
-        background: #fff;
-        border-radius: 2px;
-        position: absolute;
-      }
-
-      .brand-logo::before {
-        top: 5px;
-        left: 5px;
-        opacity: 1;
-      }
-
-      .brand-logo::after {
-        right: 5px;
-        bottom: 5px;
-        opacity: 0.6;
+      .brand-logo-svg {
+        flex-shrink: 0;
+        display: block;
       }
 
       .brand-name {
-        font-size: 15px;
-        font-weight: 500;
-        letter-spacing: -0.01em;
-      }
-
-      .beta {
-        font-size: 11px;
-        font-weight: 400;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: #f2f4f8;
-        color: #6a7380;
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: #1f2937;
       }
 
       .nav-right {
@@ -131,10 +99,14 @@
       }
 
       .nav-link {
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 400;
-        color: #5c6470;
+        color: #6b7280;
         text-decoration: none;
+      }
+
+      .nav-link:hover {
+        color: #111827;
       }
 
       .avatar {
@@ -576,19 +548,30 @@
         color: var(--sub-text);
       }
 
-      /* 三栏布局总区 */
+      /* 主工作区：初始两上传 + 操作区 35/35/30，走查后 30/30/40 */
       .workspace {
         display: grid;
-        grid-template-columns: 30% 30% 40%;
         gap: 0;
         padding: 0;
         min-height: 0;
         flex: 1;
         width: 100%;
+        align-items: stretch;
+        box-sizing: border-box;
+      }
+
+      .workspace--landing {
+        grid-template-columns: 35% 35% 30%;
+        padding: 24px 32px;
+      }
+
+      .workspace--report {
+        grid-template-columns: 30% 30% 40%;
+        padding: 16px;
       }
 
       .workspace > .work-col:not(:last-child) {
-        border-right: 1px solid #e9edf3;
+        border-right: 1px solid #f3f4f6;
       }
 
       .work-col {
@@ -598,97 +581,115 @@
         overflow: hidden;
       }
 
+      .workspace--landing .upload-col {
+        min-height: min(80vh, calc(100vh - 64px - 48px - 48px));
+        max-height: calc(100vh - 64px - 48px - 48px);
+      }
+
+      .workspace--report .upload-col {
+        min-height: 0;
+        max-height: none;
+        height: 100%;
+      }
+
       /* 左中两栏上传区 */
       .upload-col {
-        border: 1.5px dashed;
-        border-radius: 12px;
+        border: 2px dashed;
+        border-radius: 16px;
         min-height: 0;
         display: flex;
         flex-direction: column;
         position: relative;
         height: 100%;
         overflow: hidden;
+        align-self: stretch;
       }
 
       .design-col {
-        background: rgba(22, 119, 255, 0.04);
-        border-color: rgba(22, 119, 255, 0.3);
+        background: #f0f9ff;
+        border-color: #dbeafe;
       }
 
       .dev-col {
-        background: rgba(217, 78, 49, 0.04);
-        border-color: rgba(217, 78, 49, 0.3);
-      }
-
-      .upload-col-head {
-        height: 40px;
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .upload-col-title {
-        font-size: 13px;
-        font-weight: 500;
-      }
-
-      .design-col .upload-col-title {
-        color: #1677ff;
-      }
-
-      .dev-col .upload-col-title {
-        color: #d94e31;
+        background: #fff7ed;
+        border-color: #fed7aa;
       }
 
       .mini-reupload {
         display: none;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 4;
         border: 0;
-        background: transparent;
-        color: #6d7684;
+        background: rgba(255, 255, 255, 0.92);
+        color: #6b7280;
         cursor: pointer;
-        font-size: 11px;
-        font-weight: 400;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 6px 10px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
+
+      .mini-reupload:hover {
+        color: #111827;
       }
 
       .upload-col-body {
         flex: 1;
-        padding: 8px 16px 16px;
+        padding: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
         min-height: 0;
         overflow: hidden;
+        cursor: pointer;
       }
 
       .upload-empty {
         text-align: center;
+        max-width: 100%;
+      }
+
+      .upload-plus {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto;
+        line-height: 64px;
+        font-size: 64px;
+        font-weight: 300;
+        color: #9ca3af;
+        user-select: none;
+      }
+
+      .upload-hero-title {
+        margin: 24px 0 0;
+        font-size: 24px;
+        font-weight: 500;
+        color: #111827;
+        line-height: 1.35;
+      }
+
+      .upload-hero-highlight--design {
+        color: #3b82f6;
+      }
+
+      .upload-hero-highlight--dev {
+        color: #f97316;
+      }
+
+      .upload-hero-desc {
+        margin: 12px 0 0;
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.5;
       }
 
       /* 隐藏原生 file input，避免出现“未选择任何文件”原生按钮 */
       .upload-col .file-input {
         display: none;
-      }
-
-      .upload-col .upload-icon-wrap {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-        margin: 0 auto 16px;
-      }
-
-      .upload-col.design-col .upload-icon-wrap {
-        background: rgba(22, 119, 255, 0.1);
-      }
-
-      .upload-col.dev-col .upload-icon-wrap {
-        background: rgba(217, 78, 49, 0.1);
-      }
-
-      .upload-col .upload-title {
-        font-size: 18px;
-        margin: 0 0 8px;
       }
 
       .upload-col .preview {
@@ -703,6 +704,16 @@
         position: relative;
       }
 
+      .img-stage {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
       /* 预览图直接显示，画框改为 JS 动态 append 到 body */
       .preview-img {
         display: block;
@@ -711,11 +722,11 @@
         object-fit: contain;
       }
 
-      /* 右栏：走查面板 */
+      /* 右栏：说明 + 报告 + 底部按钮 */
       .review-col {
-        border: 0.5px solid var(--border);
-        border-radius: 12px;
-        background: #fff;
+        border: none;
+        border-radius: 0;
+        background: #ffffff;
         display: flex;
         flex-direction: column;
         min-height: 0;
@@ -725,9 +736,140 @@
         overflow: hidden;
       }
 
+      .action-hints {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 30vh 24px 24px;
+        text-align: center;
+      }
+
+      .action-hints.is-hidden {
+        display: none;
+      }
+
+      .hint-line1 {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #6b7280;
+      }
+
+      .hint-line2 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.8;
+        color: #6b7280;
+      }
+
+      .hint-line3 {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #6b7280;
+      }
+
+      .hint-gradient {
+        font-weight: 600;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .report-wrap {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .report-wrap.is-visible {
+        display: flex;
+      }
+
+      .review-col .error {
+        flex-shrink: 0;
+        margin: 0;
+        padding: 10px 16px;
+      }
+
+      .cta-footer {
+        flex-shrink: 0;
+        padding: 0 24px 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .btn-icon-sparkles {
+        flex-shrink: 0;
+      }
+
+      .btn-primary-walk {
+        width: 100%;
+        height: 56px;
+        border: 0;
+        border-radius: 12px;
+        padding: 0 20px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+
+      .btn-primary-walk:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .btn-secondary-walk {
+        width: 100%;
+        height: 56px;
+        border-radius: 12px;
+        padding: 0 20px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #1f2937;
+        cursor: pointer;
+        background: #ffffff;
+        border: 1.5px solid #1f2937;
+      }
+
+      .btn-secondary-walk:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-walk-inner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .btn-walk-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
       .review-head {
         padding: 16px 18px;
-        border-bottom: 0.5px solid #e9edf3;
+        border-bottom: 1px solid #f3f4f6;
       }
 
       .review-head .action-row {
@@ -762,35 +904,6 @@
         flex: 1;
         overflow-y: auto;
         padding: 16px 18px;
-      }
-
-      /* 右栏底部按钮区：固定在面板底部，不随报告滚动 */
-      .review-footer {
-        flex-shrink: 0;
-        border-top: 0.5px solid #e9edf3;
-        padding: 16px 18px;
-        background: #fff;
-      }
-
-      .review-footer .action-row {
-        justify-content: stretch;
-      }
-
-      .review-footer .btn {
-        height: 48px;
-        border-radius: 10px;
-        font-size: 14px;
-      }
-
-      .review-footer .btn:disabled {
-        background: #d9dde5;
-        color: #fff;
-      }
-
-      .review-footer .btn-note {
-        margin-top: 8px;
-        text-align: center;
-        font-size: 11px;
       }
 
       .review-body::-webkit-scrollbar {
@@ -883,19 +996,25 @@
 
       /* 小屏降级为上下布局 */
       @media (max-width: 1024px) {
-        .workspace {
+        .workspace--landing,
+        .workspace--report {
           grid-template-columns: 1fr;
-          min-height: auto;
+          padding: 16px;
         }
 
         .workspace > .work-col:not(:last-child) {
           border-right: none;
-          border-bottom: 1px solid #e9edf3;
+          border-bottom: 1px solid #f3f4f6;
+        }
+
+        .workspace--landing .upload-col {
+          min-height: 360px;
+          max-height: none;
         }
 
         .upload-col,
         .review-col {
-          min-height: 420px;
+          min-height: 0;
         }
       }
     </style>
@@ -906,37 +1025,51 @@
         <!-- 顶部导航 -->
         <header class="top-nav">
           <div class="brand">
-            <span class="brand-logo" aria-hidden="true"></span>
-            <span class="brand-name">PixelDiff</span>
-            <span class="beta">Beta</span>
+            <svg
+              class="brand-logo-svg"
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="brandCubeTop" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#8B5CF6" />
+                  <stop offset="100%" stop-color="#6366F1" />
+                </linearGradient>
+                <linearGradient id="brandCubeLeft" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#7C3AED" />
+                  <stop offset="100%" stop-color="#5B21B6" />
+                </linearGradient>
+                <linearGradient id="brandCubeRight" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#818CF8" />
+                  <stop offset="100%" stop-color="#4F46E5" />
+                </linearGradient>
+              </defs>
+              <polygon fill="url(#brandCubeTop)" points="16,5 27,12 16,19 5,12" />
+              <polygon fill="url(#brandCubeLeft)" points="5,12 16,19 16,27 5,20" />
+              <polygon fill="url(#brandCubeRight)" points="16,19 27,12 27,21 16,27" />
+            </svg>
+            <span class="brand-name">设计走查平台</span>
           </div>
           <div class="nav-right">
-            <a class="nav-link" href="javascript:void(0)">使用指南</a>
             <a class="nav-link" href="javascript:void(0)">历史记录</a>
             <span class="avatar">L</span>
           </div>
         </header>
 
-        <!-- 三栏主体：左设计稿 / 中实现稿 / 右走查面板 -->
-        <section class="workspace">
-          <!-- 左栏：设计稿区 -->
+        <!-- 主体：初始 35/35/30，走查后 30/30/40 -->
+        <section id="workspace" class="workspace workspace--landing">
           <article class="work-col upload-col design-col">
-            <div class="upload-col-head">
-              <span class="upload-col-title">设计稿</span>
-              <button id="designReupload" class="mini-reupload" type="button">重新上传</button>
-            </div>
             <div id="designDropzone" class="upload-col-body">
               <input id="designInput" class="file-input" type="file" accept="image/*" />
+              <button id="designReupload" class="mini-reupload" type="button">重新上传</button>
               <div id="designEmpty" class="upload-empty">
-                <div class="upload-icon-wrap" aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="#1677FF" stroke-width="1.5"/>
-                    <circle cx="8.5" cy="9" r="1.2" fill="#1677FF"/>
-                    <path d="M5.5 17l4.2-4.2a1 1 0 0 1 1.4 0L14 15.7l1.8-1.8a1 1 0 0 1 1.4 0l1.3 1.3" stroke="#1677FF" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                </div>
-                <p class="upload-title">上传设计稿</p>
-                <p class="upload-desc">拖放图片到此处,或点击选择</p>
+                <div class="upload-plus" aria-hidden="true">+</div>
+                <p class="upload-hero-title">
+                  上传<span class="upload-hero-highlight--design">设计稿</span>
+                </p>
+                <p class="upload-hero-desc">图片拖放到此处,或点击选择文件</p>
               </div>
               <div class="img-stage" id="designStage">
                 <img id="designPreview" class="preview preview-img" alt="设计稿预览" />
@@ -945,79 +1078,78 @@
             </div>
           </article>
 
-          <!-- 中栏：实现稿区 -->
           <article class="work-col upload-col dev-col">
-            <div class="upload-col-head">
-              <span class="upload-col-title">实现稿</span>
-              <button id="actualReupload" class="mini-reupload" type="button">重新上传</button>
-            </div>
             <div id="actualDropzone" class="upload-col-body">
               <input id="actualInput" class="file-input" type="file" accept="image/*" />
+              <button id="actualReupload" class="mini-reupload" type="button">重新上传</button>
               <div id="actualEmpty" class="upload-empty">
-                <div class="upload-icon-wrap" aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M8 7L4 12l4 5M16 7l4 5-4 5M13 5l-2 14" stroke="#D94E31" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-                <p class="upload-title">上传实现稿</p>
-                <p class="upload-desc">拖放图片到此处,或点击选择</p>
+                <div class="upload-plus" aria-hidden="true">+</div>
+                <p class="upload-hero-title">
+                  上传<span class="upload-hero-highlight--dev">开发稿</span>
+                </p>
+                <p class="upload-hero-desc">图片拖放到此处,或点击选择文件</p>
               </div>
               <div class="img-stage" id="actualStage">
-                <img id="actualPreview" class="preview preview-img" alt="实现稿预览" />
+                <img id="actualPreview" class="preview preview-img" alt="开发稿预览" />
                 <div class="bbox-layer" id="actualBboxLayer"></div>
               </div>
             </div>
           </article>
 
-          <!-- 右栏：走查控制与报告 -->
-          <section class="work-col review-col result">
-            <!-- 右栏顶部：仅保留结果总览条 -->
-            <div class="review-head">
-              <div id="result-summary" class="summary-line" style="display: none"></div>
+          <section class="work-col review-col result" id="reviewCol">
+            <div id="errorBox" class="error" style="display: none"></div>
+
+            <div id="actionHints" class="action-hints">
+              <p class="hint-line1">为确保对比准确</p>
+              <p class="hint-line2">请上传<span class="hint-gradient">相同尺寸</span>的</p>
+              <p class="hint-line3">设计稿和开发稿</p>
             </div>
 
-            <!-- 右栏中部：报告滚动区 -->
-            <div class="review-body">
-              <div id="statusText" class="status"></div>
-              <div id="errorBox" class="error"></div>
-
-              <div id="loadingPanel" class="loading-panel">
-                <div class="loading-spinner-lg"></div>
-                <div class="loading-title">AI 正在分析两张图...</div>
-                <div class="loading-subtitle">通常需要 10-30 秒，请耐心等待</div>
-                <div id="loadingStep" class="loading-step">正在上传图片...</div>
+            <div id="reportWrap" class="report-wrap">
+              <div class="review-head">
+                <div id="result-summary" class="summary-line" style="display: none"></div>
               </div>
+              <div class="review-body">
+                <div id="statusText" class="status"></div>
 
-              <div id="errorCard" class="error-card">
-                <div class="error-card-title">走查失败</div>
-                <div id="errorCardBody" class="error-card-body"></div>
+                <div id="loadingPanel" class="loading-panel">
+                  <div class="loading-spinner-lg"></div>
+                  <div class="loading-title">AI 正在分析两张图...</div>
+                  <div class="loading-subtitle">通常需要 10-30 秒，请耐心等待</div>
+                  <div id="loadingStep" class="loading-step">正在上传图片...</div>
+                </div>
+
+                <div id="errorCard" class="error-card">
+                  <div class="error-card-title">走查失败</div>
+                  <div id="errorCardBody" class="error-card-body"></div>
+                </div>
+
+                <div id="issuesList" class="issues"></div>
               </div>
+            </div>
 
-              <div id="reportPlaceholderEmpty" class="report-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M7 4h7l3 3v13H7V4z" stroke="#9BA3AF" stroke-width="1.5" stroke-linejoin="round"/>
-                  <path d="M10 10h4M10 14h6" stroke="#9BA3AF" stroke-width="1.5" stroke-linecap="round"/>
+            <div class="cta-footer" id="ctaFooter">
+              <button id="startBtn" class="btn-primary-walk" type="button" disabled>
+                <svg
+                  class="btn-icon-sparkles"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                  <path d="M5 3v4M19 17v4M3 5h4M17 19h4" />
                 </svg>
-                <p>上传两张图开始走查</p>
-              </div>
-              <div id="reportPlaceholderReady" class="report-placeholder" style="display: none">
-                <p>准备就绪,点击下方“开始对比”</p>
-              </div>
-
-              <div id="issuesList" class="issues"></div>
-            </div>
-
-            <!-- 右栏底部：固定操作区 -->
-            <div class="review-footer">
-              <div class="action-row">
-                <button id="startBtn" class="btn" type="button" disabled>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/>
-                  </svg>
-                  开始对比
-                </button>
-              </div>
-              <div id="btnNote" class="btn-note">先上传两张图</div>
+                开始走查
+              </button>
+              <button id="partialWalkBtn" class="btn-secondary-walk" type="button" disabled>
+                局部走查
+              </button>
             </div>
           </section>
         </section>
@@ -1040,18 +1172,40 @@
       const designReupload = document.getElementById("designReupload");
       const actualReupload = document.getElementById("actualReupload");
       const startBtn = document.getElementById("startBtn");
-      const btnNote = document.getElementById("btnNote");
+      const partialWalkBtn = document.getElementById("partialWalkBtn");
+      const workspaceEl = document.getElementById("workspace");
+      const actionHints = document.getElementById("actionHints");
+      const reportWrap = document.getElementById("reportWrap");
       const statusText = document.getElementById("statusText");
       const errorBox = document.getElementById("errorBox");
       const resultSummary = document.getElementById("result-summary");
-      const reportPlaceholderEmpty = document.getElementById("reportPlaceholderEmpty");
-      const reportPlaceholderReady = document.getElementById("reportPlaceholderReady");
       const issuesList = document.getElementById("issuesList");
       const loadingPanel = document.getElementById("loadingPanel");
       const loadingStep = document.getElementById("loadingStep");
       const resultSection = document.querySelector(".result");
       const errorCard = document.getElementById("errorCard");
       const errorCardBody = document.getElementById("errorCardBody");
+
+      const PRIMARY_BTN_SVG = `<svg class="btn-icon-sparkles" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M19 17v4M3 5h4M17 19h4"/></svg>`;
+
+      function primaryWalkButtonHtml() {
+        const label = hasReport ? "再次走查" : "开始走查";
+        return `${PRIMARY_BTN_SVG}${label}`;
+      }
+
+      function enterReportLayout() {
+        workspaceEl.classList.remove("workspace--landing");
+        workspaceEl.classList.add("workspace--report");
+        actionHints.classList.add("is-hidden");
+        reportWrap.classList.add("is-visible");
+      }
+
+      function resetToLandingLayout() {
+        workspaceEl.classList.remove("workspace--report");
+        workspaceEl.classList.add("workspace--landing");
+        actionHints.classList.remove("is-hidden");
+        reportWrap.classList.remove("is-visible");
+      }
 
       let designFile = null;
       let actualFile = null;
@@ -1075,18 +1229,20 @@
         const ready = !!(designFile && actualFile);
         if (!loadingPanel.classList.contains("active")) {
           startBtn.disabled = !ready;
+          partialWalkBtn.disabled = !ready;
         }
-        btnNote.textContent = ready ? "约 30 秒分析完成 · 不存储您的图片" : "先上传两张图";
         statusText.style.display = "none";
         if (!ready) {
           currentIssues = [];
           clearBboxes();
-          reportPlaceholderEmpty.style.display = "flex";
-          reportPlaceholderReady.style.display = "none";
+          hasReport = false;
           resultSummary.style.display = "none";
-        } else if (!hasReport) {
-          reportPlaceholderEmpty.style.display = "none";
-          reportPlaceholderReady.style.display = "flex";
+          issuesList.innerHTML = "";
+          issuesList.style.display = "none";
+          loadingPanel.classList.remove("active");
+          clearError();
+          clearErrorCard();
+          resetToLandingLayout();
         }
       }
 
@@ -1112,7 +1268,7 @@
           designReupload.style.display = "inline-flex";
           designStage.style.display = "flex";
         }
-        if (kind === "实现稿") {
+        if (kind === "开发稿") {
           actualFile = file;
           actualEmpty.style.display = "none";
           actualReupload.style.display = "inline-flex";
@@ -1138,15 +1294,21 @@
         handleFileChange(designInput, designPreview, "设计稿")
       );
       actualInput.addEventListener("change", () =>
-        handleFileChange(actualInput, actualPreview, "实现稿")
+        handleFileChange(actualInput, actualPreview, "开发稿")
       );
+
+      partialWalkBtn.addEventListener("click", () => {
+        if (partialWalkBtn.disabled) return;
+        showError("局部走查功能即将开放，敬请期待。");
+      });
 
       startBtn.addEventListener("click", async () => {
         if (!designFile || !actualFile) {
-          showError("请先上传设计稿和实现稿。");
+          showError("请先上传设计稿和开发稿。");
           return;
         }
 
+        enterReportLayout();
         clearError();
         clearErrorCard();
         setLoading(true, "正在通过服务器分析差异，请稍候...");
@@ -1209,22 +1371,19 @@
 
       function setLoading(loading, text) {
         startBtn.disabled = loading;
+        partialWalkBtn.disabled = loading || !(designFile && actualFile);
         if (loading) {
           clearBboxes();
           startBtn.innerHTML =
-            '<span class="btn-inner"><span class="btn-spinner"></span>AI 分析中...</span>';
-          btnNote.textContent = "正在生成差异报告...";
+            '<span class="btn-walk-inner"><span class="btn-walk-spinner"></span>AI 分析中...</span>';
           statusText.innerHTML = `<span class="spinner"></span>${escapeHtml(text)}`;
           statusText.style.display = "flex";
-          reportPlaceholderEmpty.style.display = "none";
-          reportPlaceholderReady.style.display = "none";
           issuesList.style.display = "none";
           resultSection.classList.add("is-dimmed");
           loadingPanel.classList.add("active");
           startLoadingSteps();
         } else {
-          startBtn.innerHTML =
-            `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5.8v12.4a1 1 0 0 0 1.5.86l10.2-6.2a1 1 0 0 0 0-1.72L8.5 4.94A1 1 0 0 0 7 5.8z" fill="#fff"/></svg>${hasReport ? "重新对比" : "开始对比"}`;
+          startBtn.innerHTML = primaryWalkButtonHtml();
           statusText.textContent = text;
           statusText.style.display = "none";
           issuesList.style.display = "grid";
@@ -1267,8 +1426,6 @@
         errorCard.style.display = "block";
         errorCardBody.textContent = msg;
         issuesList.style.display = "none";
-        reportPlaceholderEmpty.style.display = "none";
-        reportPlaceholderReady.style.display = "none";
       }
 
       function clearErrorCard() {
@@ -1445,8 +1602,6 @@
       function renderReport(report) {
         hasReport = true;
         currentIssues = report.issues.slice(0, 10);
-        reportPlaceholderEmpty.style.display = "none";
-        reportPlaceholderReady.style.display = "none";
         statusText.style.display = "none";
         issuesList.style.display = "grid";
         window._lastIssues = report.issues;
@@ -1491,7 +1646,7 @@
                     : ""
                 }${
                   item.actual_value
-                    ? `<span><strong>实现:</strong> ${escapeHtml(String(item.actual_value))}</span>`
+                    ? `<span><strong>开发:</strong> ${escapeHtml(String(item.actual_value))}</span>`
                     : ""
                 }</div>`
               : "";
