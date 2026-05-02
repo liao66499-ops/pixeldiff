@@ -1106,6 +1106,180 @@
           min-height: 0;
         }
       }
+
+      /* 历史记录抽屉 */
+      .history-drawer {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .history-drawer.open {
+        pointer-events: auto;
+        opacity: 1;
+      }
+
+      .history-drawer-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+      }
+
+      .history-drawer-panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 420px;
+        height: 100%;
+        background: #fff;
+        box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .history-drawer.open .history-drawer-panel {
+        transform: translateX(0);
+      }
+
+      .history-drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+
+      .history-drawer-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .history-drawer-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #6b7280;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+
+      .history-drawer-close:hover {
+        background: #f3f4f6;
+      }
+
+      .history-drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+      }
+
+      .history-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.15s;
+        margin-bottom: 8px;
+        position: relative;
+      }
+
+      .history-item:hover {
+        background: #f9fafb;
+      }
+
+      .history-item-thumbs {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      .history-item-thumbs img {
+        width: 48px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #f3f4f6;
+      }
+
+      .history-item-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .history-item-date {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
+
+      .history-item-stats {
+        font-size: 14px;
+        color: #1f2937;
+        font-weight: 500;
+      }
+
+      .history-item-badges {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+        font-size: 12px;
+      }
+
+      .history-badge-high {
+        color: #ef4444;
+      }
+
+      .history-badge-mid {
+        color: #f59e0b;
+      }
+
+      .history-badge-low {
+        color: #fbbf24;
+      }
+
+      .history-item-delete {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s;
+        font-size: 16px;
+        line-height: 1;
+        padding: 4px;
+      }
+
+      .history-item:hover .history-item-delete {
+        opacity: 1;
+      }
+
+      .history-item-delete:hover {
+        color: #ef4444;
+      }
+
+      .history-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
@@ -1124,7 +1298,12 @@
             <span class="brand-name">设计走查平台</span>
           </div>
           <div class="nav-right">
-            <a class="nav-link" href="javascript:void(0)">历史记录</a>
+            <a
+              class="nav-link"
+              href="javascript:void(0)"
+              onclick="openHistoryDrawer(); return false;"
+              style="cursor: pointer"
+              >历史记录</a>
             <span class="avatar">L</span>
           </div>
         </header>
@@ -1220,6 +1399,19 @@
       </div>
     </div>
 
+    <div id="historyDrawer" class="history-drawer">
+      <div class="history-drawer-overlay" onclick="closeHistoryDrawer()"></div>
+      <div class="history-drawer-panel">
+        <div class="history-drawer-header">
+          <h3>历史记录</h3>
+          <button type="button" class="history-drawer-close" onclick="closeHistoryDrawer()" aria-label="关闭">
+            ×
+          </button>
+        </div>
+        <div class="history-drawer-body" id="historyList"></div>
+      </div>
+    </div>
+
     <script>
       const designInput = document.getElementById("designInput");
       const actualInput = document.getElementById("actualInput");
@@ -1271,6 +1463,93 @@
       let currentIssues = [];
       // 全局存储已画的框，方便清除
       let drawnBboxes = [];
+
+      const HISTORY_KEY = "pixeldiff_history";
+
+      function compressImage(file, maxWidth, quality) {
+        return new Promise((resolve, reject) => {
+          if (!file || !(file instanceof Blob)) {
+            reject(new Error("无效文件"));
+            return;
+          }
+          const url = URL.createObjectURL(file);
+          const img = new Image();
+          img.onload = () => {
+            URL.revokeObjectURL(url);
+            let w = img.naturalWidth || img.width;
+            let h = img.naturalHeight || img.height;
+            if (w <= 0 || h <= 0) {
+              reject(new Error("无法读取图片尺寸"));
+              return;
+            }
+            if (w > maxWidth) {
+              h = (h * maxWidth) / w;
+              w = maxWidth;
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(w);
+            canvas.height = Math.round(h);
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              reject(new Error("Canvas 不可用"));
+              return;
+            }
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            try {
+              resolve(canvas.toDataURL("image/jpeg", quality));
+            } catch (e) {
+              reject(e);
+            }
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("图片加载失败"));
+          };
+          img.src = url;
+        });
+      }
+
+      function getHistory() {
+        try {
+          const raw = localStorage.getItem(HISTORY_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveToHistory(record) {
+        let arr = getHistory();
+        arr.unshift(record);
+        if (arr.length > 20) {
+          arr = arr.slice(0, 20);
+        }
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+        } catch (e) {
+          if (e.name === "QuotaExceededError" || e.code === 22) {
+            arr = arr.slice(0, Math.max(0, arr.length - 5));
+            try {
+              localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+            } catch (e2) {
+              alert("本地存储已满,请删除一些历史记录");
+            }
+          } else {
+            throw e;
+          }
+        }
+      }
+
+      function deleteHistoryItem(id) {
+        const arr = getHistory().filter((x) => String(x.id) !== String(id));
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+        } catch (e) {
+          console.warn(e);
+        }
+      }
 
       const LOADING_STEPS = [
         "正在上传图片...",
@@ -1451,6 +1730,45 @@
           setLoading(false, "走查完成。");
           // 结果生成后平滑滚动到结果区域，提升交互体验
           resultSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+          (async () => {
+            try {
+              const [designThumb, devThumb, designFull, devFull] = await Promise.all([
+                compressImage(designFile, 200, 0.6),
+                compressImage(actualFile, 200, 0.6),
+                compressImage(designFile, 800, 0.7),
+                compressImage(actualFile, 800, 0.7),
+              ]);
+              const severityCount = { 高: 0, 中: 0, 低: 0 };
+              parsed.issues.forEach((it) => {
+                if (it?.severity === "高" || it?.severity === "中" || it?.severity === "低") {
+                  severityCount[it.severity]++;
+                }
+              });
+              const diffCount = Number(
+                parsed.summary?.total_issues ?? parsed.issues?.length ?? 0
+              );
+              const consistency = Number(parsed.summary?.consistency_score ?? 0);
+              const record = {
+                id: String(Date.now()),
+                timestamp: Date.now(),
+                date: new Date().toLocaleString("zh-CN"),
+                designThumb,
+                devThumb,
+                designFull,
+                devFull,
+                diffCount,
+                consistency,
+                highCount: severityCount.高,
+                midCount: severityCount.中,
+                lowCount: severityCount.低,
+                report: JSON.parse(JSON.stringify(parsed)),
+              };
+              saveToHistory(record);
+            } catch (err) {
+              console.warn("历史记录保存失败", err);
+            }
+          })();
         } catch (err) {
           setLoading(false, "走查失败。");
           showError(`调用失败：${err.message}`);
@@ -1741,6 +2059,137 @@
           issuesList.appendChild(card);
         });
       }
+
+      function loadImageElement(img, src) {
+        return new Promise((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("图片加载失败"));
+          img.src = src;
+        });
+      }
+
+      async function dataUrlToFile(dataUrl, filename) {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        return new File([blob], filename, { type: blob.type || "image/jpeg" });
+      }
+
+      async function loadHistoryItem(id) {
+        const rec = getHistory().find((x) => String(x.id) === String(id));
+        if (!rec || !rec.report) return;
+
+        enterReportLayout();
+        actionHints.classList.add("is-hidden");
+        resultPanel.classList.add("is-visible");
+
+        designEmpty.style.display = "none";
+        actualEmpty.style.display = "none";
+        designReupload.style.display = "inline-flex";
+        actualReupload.style.display = "inline-flex";
+        designStage.style.display = "flex";
+        actualStage.style.display = "flex";
+
+        designPreview.style.display = "block";
+        actualPreview.style.display = "block";
+
+        try {
+          await Promise.all([
+            loadImageElement(designPreview, rec.designFull),
+            loadImageElement(actualPreview, rec.devFull),
+          ]);
+        } catch {
+          return;
+        }
+
+        try {
+          designFile = await dataUrlToFile(rec.designFull, "history-design.jpg");
+          actualFile = await dataUrlToFile(rec.devFull, "history-actual.jpg");
+        } catch {
+          designFile = null;
+          actualFile = null;
+        }
+
+        renderReport(rec.report);
+        syncLayerToImage("designPreview", "designBboxLayer");
+        syncLayerToImage("actualPreview", "actualBboxLayer");
+        updateButtonState();
+      }
+
+      function renderHistoryList() {
+        const el = document.getElementById("historyList");
+        if (!el) return;
+        const items = getHistory();
+        if (!items.length) {
+          el.innerHTML = '<div class="history-empty">暂无历史记录</div>';
+          return;
+        }
+        el.innerHTML = items
+          .map((rec) => {
+            const safeId = escapeHtml(String(rec.id));
+            const dThumb = rec.designThumb || "";
+            const vThumb = rec.devThumb || "";
+            const dateStr = escapeHtml(String(rec.date || ""));
+            const diffN = Number.isFinite(rec.diffCount) ? rec.diffCount : 0;
+            const cons =
+              typeof rec.consistency === "number" && Number.isFinite(rec.consistency)
+                ? rec.consistency.toFixed(2)
+                : "-";
+            const hi = Number(rec.highCount) || 0;
+            const mid = Number(rec.midCount) || 0;
+            const lo = Number(rec.lowCount) || 0;
+            return `<div class="history-item" data-id="${safeId}">
+              <div class="history-item-thumbs">
+                <img src="${dThumb}" alt="" />
+                <img src="${vThumb}" alt="" />
+              </div>
+              <div class="history-item-info">
+                <div class="history-item-date">${dateStr}</div>
+                <div class="history-item-stats">${diffN} 处差异 · 一致性 ${cons}</div>
+                <div class="history-item-badges">
+                  <span class="history-badge-high">●高 ${hi}</span>
+                  <span class="history-badge-mid">●中 ${mid}</span>
+                  <span class="history-badge-low">●低 ${lo}</span>
+                </div>
+              </div>
+              <button type="button" class="history-item-delete" data-del="${safeId}" aria-label="删除">×</button>
+            </div>`;
+          })
+          .join("");
+
+        el.querySelectorAll(".history-item").forEach((node) => {
+          node.addEventListener("click", async (e) => {
+            if (e.target.closest(".history-item-delete")) return;
+            const hid = node.getAttribute("data-id");
+            if (!hid) return;
+            await loadHistoryItem(hid);
+            closeHistoryDrawer();
+          });
+        });
+        el.querySelectorAll(".history-item-delete").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const delId = btn.getAttribute("data-del");
+            if (delId) deleteHistoryItem(delId);
+            renderHistoryList();
+          });
+        });
+      }
+
+      function openHistoryDrawer() {
+        renderHistoryList();
+        const drawer = document.getElementById("historyDrawer");
+        if (drawer) drawer.classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeHistoryDrawer() {
+        const drawer = document.getElementById("historyDrawer");
+        if (drawer) drawer.classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      window.openHistoryDrawer = openHistoryDrawer;
+      window.closeHistoryDrawer = closeHistoryDrawer;
 
       function getSeverityColor(severity) {
         if (severity === "高") {
