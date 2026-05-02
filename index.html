@@ -1787,13 +1787,18 @@
           }
 
           if (!resp.ok) {
-            const msg =
-              data && typeof data.error === "string" ? data.error : `HTTP ${resp.status}`;
-            const details =
-              data && typeof data.details === "string" && data.details
-                ? data.details
-                : responseText;
-            throw new Error(details && details !== "{}" ? `${msg}\n${details}` : msg);
+            if (tryShowAnalyzeApiFriendlyAlert(resp, responseText)) {
+              setLoading(false, "走查失败。");
+              showError("走查未完成,请根据弹窗说明处理。");
+              showErrorCard("走查未完成,请根据弹窗说明处理。");
+              btn.disabled = false;
+              btn.textContent = "开始局部分析";
+              btnPartialCancel.style.display = "block";
+              document.querySelectorAll(".bbox-overlay").forEach((el) => el.classList.add("active"));
+              updateHint();
+              return;
+            }
+            throw new Error(`分析失败 (${resp.status})`);
           }
 
           if (!data || typeof data.rawText !== "string") {
@@ -1860,9 +1865,10 @@
         } catch (err) {
           console.error("局部分析失败:", err);
           setLoading(false, "走查失败。");
-          showError(`调用失败：${err.message}`);
-          showErrorCard(`调用失败：${err.message}`);
-          alert("分析失败:" + err.message);
+          const msg = err.message || "网络异常,请检查连接后重试";
+          alert(msg);
+          showError(`调用失败：${msg}`);
+          showErrorCard(`调用失败：${msg}`);
           btn.disabled = false;
           btn.textContent = "开始局部分析";
           btnPartialCancel.style.display = "block";
@@ -2125,6 +2131,27 @@
         handleFileChange(actualInput, actualPreview, "开发稿")
       );
 
+      /** @returns {boolean} 已弹窗并应由调用方结束流程时为 true */
+      function tryShowAnalyzeApiFriendlyAlert(resp, responseText) {
+        const text = String(responseText || "");
+        const lower = text.toLowerCase();
+        if (resp.status === 429 || text.includes("429") || lower.includes("quota")) {
+          alert(
+            "AI 服务繁忙,今日免费额度已用完。\n请明天 8:00 后再试,或联系管理员升级套餐。"
+          );
+          return true;
+        }
+        if (resp.status === 401 || resp.status === 403) {
+          alert("AI 服务认证失败,请联系管理员检查 API Key。");
+          return true;
+        }
+        if (resp.status >= 500) {
+          alert("AI 服务暂时不可用,请稍后再试。");
+          return true;
+        }
+        return false;
+      }
+
       async function handleStartClick() {
         if (btnStart.classList.contains("disabled")) return;
         if (!designFile || !actualFile) {
@@ -2167,13 +2194,13 @@
           }
 
           if (!resp.ok) {
-            const msg =
-              data && typeof data.error === "string" ? data.error : `HTTP ${resp.status}`;
-            const details =
-              data && typeof data.details === "string" && data.details
-                ? data.details
-                : responseText;
-            throw new Error(details && details !== "{}" ? `${msg}\n${details}` : msg);
+            if (tryShowAnalyzeApiFriendlyAlert(resp, responseText)) {
+              setLoading(false, "走查失败。");
+              showError("走查未完成,请根据弹窗说明处理。");
+              showErrorCard("走查未完成,请根据弹窗说明处理。");
+              return;
+            }
+            throw new Error(`分析失败 (${resp.status})`);
           }
 
           if (!data || typeof data.rawText !== "string") {
@@ -2226,9 +2253,12 @@
             }
           })();
         } catch (err) {
+          console.error("分析失败:", err);
           setLoading(false, "走查失败。");
-          showError(`调用失败：${err.message}`);
-          showErrorCard(`调用失败：${err.message}`);
+          const msg = err.message || "网络异常,请检查连接后重试";
+          alert(msg);
+          showError(`调用失败：${msg}`);
+          showErrorCard(`调用失败：${msg}`);
         }
       }
 
