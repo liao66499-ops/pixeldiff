@@ -562,7 +562,7 @@
 
       .workspace--landing {
         grid-template-columns: 35% 35% 30%;
-        padding: 24px 32px;
+        padding: 48px 64px 56px;
       }
 
       .workspace--report {
@@ -570,7 +570,8 @@
         padding: 16px;
       }
 
-      .workspace > .work-col:not(:last-child) {
+      /* 初始态与设计稿一致：栏间无竖线；走查后保留轻分隔 */
+      .workspace--report > .work-col:not(:last-child) {
         border-right: 1px solid #f3f4f6;
       }
 
@@ -581,21 +582,28 @@
         overflow: hidden;
       }
 
+      /* 上传卡片在各自列内水平居中，宽度略小于列宽以留出「大气」留白 */
       .workspace--landing .upload-col {
-        min-height: min(80vh, calc(100vh - 64px - 48px - 48px));
-        max-height: calc(100vh - 64px - 48px - 48px);
+        width: min(100%, 620px);
+        justify-self: center;
+        align-self: center;
+        min-height: clamp(400px, 58vh, 720px);
+        max-height: min(78vh, calc(100vh - 64px - 112px));
       }
 
       .workspace--report .upload-col {
         min-height: 0;
         max-height: none;
         height: 100%;
+        width: 100%;
+        justify-self: stretch;
+        align-self: stretch;
       }
 
       /* 左中两栏上传区 */
       .upload-col {
-        border: 2px dashed;
-        border-radius: 16px;
+        border: 1.5px dashed;
+        border-radius: 14px;
         min-height: 0;
         display: flex;
         flex-direction: column;
@@ -638,7 +646,7 @@
 
       .upload-col-body {
         flex: 1;
-        padding: 80px;
+        padding: 72px 56px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -648,28 +656,35 @@
         cursor: pointer;
       }
 
+      .workspace--landing .upload-col-body {
+        padding: 80px 64px;
+      }
+
       .upload-empty {
         text-align: center;
         max-width: 100%;
       }
 
       .upload-plus {
-        width: 64px;
-        height: 64px;
+        width: 72px;
+        height: 72px;
         margin: 0 auto;
-        line-height: 64px;
-        font-size: 64px;
-        font-weight: 300;
+        line-height: 72px;
+        font-size: 56px;
+        font-weight: 200;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+          sans-serif;
+        letter-spacing: -0.04em;
         color: #9ca3af;
         user-select: none;
       }
 
       .upload-hero-title {
-        margin: 24px 0 0;
-        font-size: 24px;
+        margin: 28px 0 0;
+        font-size: 22px;
         font-weight: 500;
         color: #111827;
-        line-height: 1.35;
+        line-height: 1.4;
       }
 
       .upload-hero-highlight--design {
@@ -681,10 +696,10 @@
       }
 
       .upload-hero-desc {
-        margin: 12px 0 0;
+        margin: 14px 0 0;
         font-size: 14px;
         color: #6b7280;
-        line-height: 1.5;
+        line-height: 1.55;
       }
 
       /* 隐藏原生 file input，避免出现“未选择任何文件”原生按钮 */
@@ -736,14 +751,32 @@
         overflow: hidden;
       }
 
+      /* 初始态：说明 + 按钮作为一整块在列内垂直居中；按钮区偏中下而非贴底 */
+      .workspace--landing .review-col {
+        justify-content: center;
+        padding: 0 8px;
+      }
+
+      .workspace--report .review-col {
+        justify-content: flex-start;
+      }
+
       .action-hints {
         flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
-        padding: 30vh 24px 24px;
+        justify-content: center;
+        padding: 0 28px;
         text-align: center;
+      }
+
+      .workspace--landing .action-hints {
+        flex: 0 0 auto;
+        justify-content: center;
+        padding: 0 32px;
+        max-width: 340px;
+        margin: 0 auto;
       }
 
       .action-hints.is-hidden {
@@ -752,22 +785,22 @@
 
       .hint-line1 {
         margin: 0;
-        font-size: 16px;
-        line-height: 1.8;
+        font-size: 15px;
+        line-height: 1.75;
         color: #6b7280;
       }
 
       .hint-line2 {
         margin: 0;
-        font-size: 18px;
-        line-height: 1.8;
+        font-size: 17px;
+        line-height: 1.75;
         color: #6b7280;
       }
 
       .hint-line3 {
         margin: 0;
-        font-size: 16px;
-        line-height: 1.8;
+        font-size: 15px;
+        line-height: 1.75;
         color: #6b7280;
       }
 
@@ -805,6 +838,24 @@
         gap: 12px;
       }
 
+      .workspace--landing .cta-footer {
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: center;
+        gap: 14px;
+        width: 100%;
+        max-width: 400px;
+        margin: clamp(36px, 5vh, 72px) auto 0;
+        padding: 0 32px 20px;
+      }
+
+      .workspace--report .cta-footer {
+        flex-direction: column;
+        max-width: none;
+        margin-top: 0;
+        padding: 0 24px 32px;
+      }
+
       .btn-icon-sparkles {
         flex-shrink: 0;
       }
@@ -823,8 +874,15 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+
+      .workspace--landing .btn-primary-walk,
+      .workspace--landing .btn-secondary-walk {
+        width: auto;
+        flex: 1;
+        min-width: 0;
       }
 
       .btn-primary-walk:disabled {
@@ -840,10 +898,10 @@
         padding: 0 20px;
         font-size: 16px;
         font-weight: 500;
-        color: #1f2937;
+        color: #374151;
         cursor: pointer;
         background: #ffffff;
-        border: 1.5px solid #1f2937;
+        border: 1px solid #e5e7eb;
       }
 
       .btn-secondary-walk:disabled {
@@ -999,17 +1057,35 @@
         .workspace--landing,
         .workspace--report {
           grid-template-columns: 1fr;
-          padding: 16px;
+          padding: 24px 20px;
         }
 
-        .workspace > .work-col:not(:last-child) {
+        .workspace--landing > .work-col:not(:last-child),
+        .workspace--report > .work-col:not(:last-child) {
           border-right: none;
           border-bottom: 1px solid #f3f4f6;
         }
 
         .workspace--landing .upload-col {
+          width: 100%;
+          max-width: none;
+          justify-self: stretch;
+          align-self: stretch;
           min-height: 360px;
           max-height: none;
+        }
+
+        .workspace--landing .cta-footer {
+          flex-direction: column;
+          max-width: none;
+          margin-top: 32px;
+          padding: 0 16px 24px;
+        }
+
+        .workspace--landing .btn-primary-walk,
+        .workspace--landing .btn-secondary-walk {
+          width: 100%;
+          flex: none;
         }
 
         .upload-col,
