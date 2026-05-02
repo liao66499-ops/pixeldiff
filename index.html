@@ -572,10 +572,7 @@
       .workspace--landing {
         /* 与左/中上传格同高的可视区域高度、上传矩形近似高度，用于右栏按钮底与矩形底对齐 */
         --cell-h: calc(100dvh - 64px - 48px - 56px);
-        --upload-rect-h: min(
-          min(78dvh, calc(100dvh - 64px - 112px)),
-          max(400px, min(58dvh, 720px))
-        );
+        --upload-rect-h: min(80vh, calc(100dvh - 64px - 40px));
         grid-template-columns: 35% 35% 30%;
         padding: 48px var(--page-inline) 56px;
         column-gap: calc(var(--page-inline) / 2);
