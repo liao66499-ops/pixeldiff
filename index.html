@@ -358,6 +358,8 @@
         margin-top: 16px;
         opacity: 1;
         transition: opacity 0.3s ease;
+        /* 走查完成后 scrollIntoView 时保留顶栏可视高度 */
+        scroll-margin-top: 64px;
       }
 
       .result.is-dimmed {
@@ -789,6 +791,8 @@
 
       .workspace--report .review-col {
         justify-content: flex-start;
+        align-items: stretch;
+        min-height: 0;
       }
 
       .action-hints {
@@ -894,23 +898,36 @@
         margin-right: 60px;
       }
 
+      /* 与开始页一致：PNG 横向并排、固定宽度，贴右栏底，不占满栏宽 */
       .workspace--report .cta-footer {
         flex-direction: column;
+        align-items: flex-end;
+        align-self: stretch;
+        justify-content: flex-end;
+        gap: 0;
+        width: 100%;
         max-width: none;
-        margin-top: 0;
+        margin: 0;
+        margin-top: auto;
         padding: 0 24px 32px;
       }
 
       .workspace--report .cta-btn-row {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 12px;
-        width: 100%;
+        justify-content: flex-end;
+        align-items: center;
+        width: auto;
+        align-self: flex-end;
+        margin-right: 60px;
       }
 
       .workspace--report .action-btn {
-        width: 100%;
+        width: 180px;
         height: auto;
+        max-width: 100%;
       }
 
       .action-btn {
@@ -1180,7 +1197,7 @@
               </p>
             </div>
 
-            <div id="reportWrap" class="report-wrap">
+            <div id="resultPanel" class="report-wrap">
               <div class="review-head">
                 <div id="result-summary" class="summary-line" style="display: none"></div>
               </div>
@@ -1245,7 +1262,7 @@
       const btnPartial = document.getElementById("btnPartial");
       const workspaceEl = document.getElementById("workspace");
       const actionHints = document.getElementById("actionHints");
-      const reportWrap = document.getElementById("reportWrap");
+      const resultPanel = document.getElementById("resultPanel");
       const statusText = document.getElementById("statusText");
       const errorBox = document.getElementById("errorBox");
       const resultSummary = document.getElementById("result-summary");
@@ -1260,14 +1277,14 @@
         workspaceEl.classList.remove("workspace--landing");
         workspaceEl.classList.add("workspace--report");
         actionHints.classList.add("is-hidden");
-        reportWrap.classList.add("is-visible");
+        resultPanel.classList.add("is-visible");
       }
 
       function resetToLandingLayout() {
         workspaceEl.classList.remove("workspace--report");
         workspaceEl.classList.add("workspace--landing");
         actionHints.classList.remove("is-hidden");
-        reportWrap.classList.remove("is-visible");
+        resultPanel.classList.remove("is-visible");
       }
 
       let designFile = null;
@@ -1458,7 +1475,7 @@
           renderReport(parsed);
           setLoading(false, "走查完成。");
           // 结果生成后平滑滚动到结果区域，提升交互体验
-          resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          resultSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
         } catch (err) {
           setLoading(false, "走查失败。");
           showError(`调用失败：${err.message}`);
@@ -1699,7 +1716,7 @@
         issuesList.style.display = "grid";
         window._lastIssues = report.issues;
         drawAllBboxes(report.issues);
-        // 有走查结果后在按钮下方显示总览
+        // 有走查结果后在结果区顶部显示总览（与 issue 列表同在 #resultPanel 内、按钮上方）
         resultSummary.style.display = "block";
         const issueCount = Number(report.summary.total_issues ?? report.issues.length ?? 0);
         const scoreValue = Number(report.summary.consistency_score ?? 0);
