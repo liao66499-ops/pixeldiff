@@ -19,6 +19,8 @@
         --bg: #f5f7fb;
         --card: #ffffff;
         --border: #e7ebf0;
+        /* 与主工作区横向 padding 一致，使 Logo 与设计稿矩形左缘对齐 */
+        --page-inline: 64px;
       }
 
       * {
@@ -69,9 +71,14 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 32px;
+        padding: 0 var(--page-inline);
         border-bottom: 1px solid #f3f4f6;
         background: #ffffff;
+      }
+
+      /* 走查后主区内边距为 16px，导航与之对齐 */
+      .shell:has(#workspace.workspace--report) .top-nav {
+        padding: 0 16px;
       }
 
       .brand {
@@ -563,10 +570,9 @@
       }
 
       .workspace--landing {
-        --workspace-inline: 64px;
         grid-template-columns: 35% 35% 30%;
-        padding: 48px var(--workspace-inline) 56px;
-        column-gap: calc(var(--workspace-inline) / 2);
+        padding: 48px var(--page-inline) 56px;
+        column-gap: calc(var(--page-inline) / 2);
         row-gap: 0;
       }
 
@@ -589,13 +595,17 @@
         overflow: hidden;
       }
 
-      /* 上传卡片在各自列内水平居中，宽度略小于列宽以留出「大气」留白 */
+      /* 设计稿与导航左缘对齐；开发稿仍在列内居中 */
       .workspace--landing .upload-col {
         width: min(100%, 620px);
         justify-self: center;
         align-self: center;
         min-height: clamp(400px, 58vh, 720px);
         max-height: min(78vh, calc(100vh - 64px - 112px));
+      }
+
+      .workspace--landing .upload-col.design-col {
+        justify-self: start;
       }
 
       .workspace--report .upload-col {
@@ -839,14 +849,14 @@
       }
 
       .workspace--landing .cta-footer {
-        flex-direction: row;
+        flex-direction: column;
         align-items: stretch;
         justify-content: center;
-        gap: 14px;
+        gap: 0;
         width: 100%;
         max-width: 400px;
         margin: clamp(36px, 5vh, 72px) auto 0;
-        padding: 0 32px 20px;
+        padding: 0 var(--page-inline) 20px;
       }
 
       .workspace--report .cta-footer {
@@ -856,73 +866,24 @@
         padding: 0 24px 32px;
       }
 
-      .btn-icon-sparkles {
-        flex-shrink: 0;
-      }
-
-      .btn-primary-walk {
+      .action-btn {
         width: 100%;
-        height: 56px;
-        border: 0;
-        border-radius: 12px;
-        padding: 0 20px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #ffffff;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-      }
-
-      .workspace--landing .btn-primary-walk,
-      .workspace--landing .btn-secondary-walk {
-        width: auto;
-        flex: 1;
-        min-width: 0;
-      }
-
-      .btn-primary-walk:disabled {
-        opacity: 0.5;
+        display: block;
         cursor: not-allowed;
-        box-shadow: none;
+        user-select: none;
+        transition: transform 0.15s ease;
       }
 
-      .btn-secondary-walk {
-        width: 100%;
-        height: 56px;
-        border-radius: 12px;
-        padding: 0 20px;
-        font-size: 16px;
-        font-weight: 500;
-        color: #374151;
+      .action-btn:not(.disabled) {
         cursor: pointer;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
       }
 
-      .btn-secondary-walk:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+      .action-btn:not(.disabled):hover {
+        transform: translateY(-1px);
       }
 
-      .btn-walk-inner {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-      }
-
-      .btn-walk-spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.45);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
+      #btnPartial {
+        margin-top: 12px;
       }
 
       .review-head {
@@ -1054,16 +1015,19 @@
 
       /* 小屏降级为上下布局 */
       @media (max-width: 1024px) {
+        :root {
+          --page-inline: 20px;
+        }
+
         .workspace--landing,
         .workspace--report {
           grid-template-columns: 1fr;
-          padding: 24px 20px;
+          padding: 24px var(--page-inline);
         }
 
         .workspace--landing {
-          --workspace-inline: 20px;
           column-gap: 0;
-          row-gap: calc(var(--workspace-inline) / 2);
+          row-gap: calc(var(--page-inline) / 2);
         }
 
         .workspace--landing > .work-col:not(:last-child),
@@ -1085,13 +1049,7 @@
           flex-direction: column;
           max-width: none;
           margin-top: 32px;
-          padding: 0 16px 24px;
-        }
-
-        .workspace--landing .btn-primary-walk,
-        .workspace--landing .btn-secondary-walk {
-          width: 100%;
-          flex: none;
+          padding: 0 var(--page-inline) 24px;
         }
 
         .upload-col,
@@ -1194,27 +1152,20 @@
             </div>
 
             <div class="cta-footer" id="ctaFooter">
-              <button id="startBtn" class="btn-primary-walk" type="button" disabled>
-                <svg
-                  class="btn-icon-sparkles"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                  <path d="M5 3v4M19 17v4M3 5h4M17 19h4" />
-                </svg>
-                开始走查
-              </button>
-              <button id="partialWalkBtn" class="btn-secondary-walk" type="button" disabled>
-                局部走查
-              </button>
+              <img
+                id="btnStart"
+                src="btn-start-disabled.png"
+                alt="开始走查"
+                class="action-btn disabled"
+                onclick="handleStartClick()"
+              />
+              <img
+                id="btnPartial"
+                src="btn-partial-disabled.png"
+                alt="局部走查"
+                class="action-btn disabled"
+                onclick="handlePartialClick()"
+              />
             </div>
           </section>
         </section>
@@ -1236,8 +1187,8 @@
       const actualEmpty = document.getElementById("actualEmpty");
       const designReupload = document.getElementById("designReupload");
       const actualReupload = document.getElementById("actualReupload");
-      const startBtn = document.getElementById("startBtn");
-      const partialWalkBtn = document.getElementById("partialWalkBtn");
+      const btnStart = document.getElementById("btnStart");
+      const btnPartial = document.getElementById("btnPartial");
       const workspaceEl = document.getElementById("workspace");
       const actionHints = document.getElementById("actionHints");
       const reportWrap = document.getElementById("reportWrap");
@@ -1250,13 +1201,6 @@
       const resultSection = document.querySelector(".result");
       const errorCard = document.getElementById("errorCard");
       const errorCardBody = document.getElementById("errorCardBody");
-
-      const PRIMARY_BTN_SVG = `<svg class="btn-icon-sparkles" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M19 17v4M3 5h4M17 19h4"/></svg>`;
-
-      function primaryWalkButtonHtml() {
-        const label = hasReport ? "再次走查" : "开始走查";
-        return `${PRIMARY_BTN_SVG}${label}`;
-      }
 
       function enterReportLayout() {
         workspaceEl.classList.remove("workspace--landing");
@@ -1289,13 +1233,27 @@
       ];
       const BBOX_COLORS = ["#FF4D4F", "#FA8C16", "#1677FF", "#52C41A", "#722ED1"];
 
+      function updateButtonState() {
+        if (!btnStart || !btnPartial) return;
+        const loading = loadingPanel.classList.contains("active");
+        const ready = !!(designFile && actualFile);
+        if (loading || !ready) {
+          btnStart.src = "btn-start-disabled.png";
+          btnPartial.src = "btn-partial-disabled.png";
+          btnStart.classList.add("disabled");
+          btnPartial.classList.add("disabled");
+        } else {
+          btnStart.src = "btn-start-active.png";
+          btnPartial.src = "btn-partial-active.png";
+          btnStart.classList.remove("disabled");
+          btnPartial.classList.remove("disabled");
+        }
+      }
+
       // 仅在两张图都已选择时启用「开始走查」，避免点了才提示缺图
       function updateUploadState() {
         const ready = !!(designFile && actualFile);
-        if (!loadingPanel.classList.contains("active")) {
-          startBtn.disabled = !ready;
-          partialWalkBtn.disabled = !ready;
-        }
+        updateButtonState();
         statusText.style.display = "none";
         if (!ready) {
           currentIssues = [];
@@ -1314,7 +1272,26 @@
       // 文件选择后更新预览图，并把 File 保存在内存变量中
       function handleFileChange(inputEl, previewEl, kind) {
         const file = inputEl.files[0];
-        if (!file) return;
+        if (!file) {
+          if (kind === "设计稿") {
+            designFile = null;
+            designEmpty.style.display = "";
+            designReupload.style.display = "none";
+            designStage.style.display = "none";
+            designPreview.removeAttribute("src");
+            designPreview.style.display = "none";
+          }
+          if (kind === "开发稿") {
+            actualFile = null;
+            actualEmpty.style.display = "";
+            actualReupload.style.display = "none";
+            actualStage.style.display = "none";
+            actualPreview.removeAttribute("src");
+            actualPreview.style.display = "none";
+          }
+          updateUploadState();
+          return;
+        }
         if (!file.type.startsWith("image/")) {
           showError(`请选择图片文件（${kind}）。`);
           return;
@@ -1362,12 +1339,13 @@
         handleFileChange(actualInput, actualPreview, "开发稿")
       );
 
-      partialWalkBtn.addEventListener("click", () => {
-        if (partialWalkBtn.disabled) return;
+      function handlePartialClick() {
+        if (btnPartial.classList.contains("disabled")) return;
         showError("局部走查功能即将开放，敬请期待。");
-      });
+      }
 
-      startBtn.addEventListener("click", async () => {
+      async function handleStartClick() {
+        if (btnStart.classList.contains("disabled")) return;
         if (!designFile || !actualFile) {
           showError("请先上传设计稿和开发稿。");
           return;
@@ -1432,23 +1410,19 @@
           showError(`调用失败：${err.message}`);
           showErrorCard(`调用失败：${err.message}`);
         }
-      });
+      }
 
       function setLoading(loading, text) {
-        startBtn.disabled = loading;
-        partialWalkBtn.disabled = loading || !(designFile && actualFile);
         if (loading) {
           clearBboxes();
-          startBtn.innerHTML =
-            '<span class="btn-walk-inner"><span class="btn-walk-spinner"></span>AI 分析中...</span>';
           statusText.innerHTML = `<span class="spinner"></span>${escapeHtml(text)}`;
           statusText.style.display = "flex";
           issuesList.style.display = "none";
           resultSection.classList.add("is-dimmed");
           loadingPanel.classList.add("active");
           startLoadingSteps();
+          updateButtonState();
         } else {
-          startBtn.innerHTML = primaryWalkButtonHtml();
           statusText.textContent = text;
           statusText.style.display = "none";
           issuesList.style.display = "grid";
