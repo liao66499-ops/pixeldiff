@@ -865,6 +865,7 @@
       .workspace--landing .cta-footer {
         flex-direction: column;
         align-items: flex-end;
+        align-self: stretch;
         justify-content: flex-end;
         gap: 0;
         width: 100%;
@@ -884,8 +885,8 @@
         align-items: center;
         width: auto;
         align-self: flex-end;
-        /* 与视口右边距目标 90px：减去 workspace 已有右内边距 --page-inline */
-        margin-right: max(0px, calc(90px - var(--page-inline)));
+        /* 左移：≈ 左栏内边距 + 列间距（与 design 右缘到视口右链路的留白同量级），避免仅 90px−P 过小 */
+        margin-right: calc(var(--page-inline) + var(--page-inline) / 2);
       }
 
       .workspace--report .cta-footer {
