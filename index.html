@@ -572,7 +572,7 @@
       .workspace--landing {
         grid-template-columns: 35% 35% 30%;
         padding: 48px var(--page-inline) 56px;
-        column-gap: calc(var(--page-inline) / 2);
+        column-gap: 20px;
         row-gap: 0;
       }
 
@@ -664,11 +664,13 @@
         padding: 80px 64px;
       }
 
-      /* 已上传：去 padding；顶部对齐，矩形高度随图片 intrinsic 变化，便于画框与 getBoundingClientRect 一致 */
+      /* 已上传：去 padding；顶对齐 + 水平居中窄图；矩形高度随图片 intrinsic 变化 */
       .upload-col-body:has(img.preview[src]) {
         padding: 0;
         height: auto;
+        width: 100%;
         align-items: flex-start;
+        justify-content: center;
         flex: 0 1 auto;
       }
 
@@ -723,7 +725,7 @@
         margin-top: 0;
         min-width: 0;
         max-width: 100%;
-        width: 100%;
+        width: auto;
         height: auto;
         background: transparent;
         display: none;
@@ -742,9 +744,15 @@
         width: 100%;
         display: none;
         align-items: flex-start;
-        justify-content: flex-start;
+        justify-content: center;
         position: relative;
         overflow: visible;
+      }
+
+      .img-stage .bbox-layer {
+        position: absolute;
+        pointer-events: none;
+        z-index: 2;
       }
 
       /* 右栏：说明 + 报告 + 底部按钮 */
