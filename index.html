@@ -606,8 +606,10 @@
         width: min(100%, 620px);
         justify-self: center;
         align-self: center;
-        min-height: clamp(400px, 58vh, 720px);
-        max-height: min(78vh, calc(100vh - 64px - 112px));
+        /* 与 --upload-rect-h 一致，固定矩形高度，避免长图撑高栏位 */
+        height: var(--upload-rect-h);
+        min-height: var(--upload-rect-h);
+        max-height: var(--upload-rect-h);
       }
 
       .workspace--landing .upload-col.design-col {
@@ -683,9 +685,10 @@
         padding: 80px 64px;
       }
 
-      /* 已上传预览时去掉内边距，避免 padding 裁切可视区；未上传时保持上方 padding */
+      /* 已上传：去 padding + 交叉轴拉满，避免 align-items:center 随图片 intrinsic 撑高 */
       .upload-col-body:has(img.preview[src]) {
         padding: 0;
+        align-items: stretch;
       }
 
       .upload-empty {
@@ -737,7 +740,6 @@
 
       .upload-col .preview {
         margin-top: 0;
-        flex: 1;
         min-width: 0;
         min-height: 0;
         max-width: 100%;
@@ -751,6 +753,10 @@
         z-index: 1;
         position: relative;
         box-sizing: border-box;
+      }
+
+      .upload-col-body:has(img.preview[src]) .preview {
+        display: block;
       }
 
       .img-stage {
@@ -1089,8 +1095,9 @@
           max-width: none;
           justify-self: stretch;
           align-self: stretch;
-          min-height: 360px;
-          max-height: none;
+          height: var(--upload-rect-h);
+          min-height: var(--upload-rect-h);
+          max-height: var(--upload-rect-h);
         }
 
         .workspace--landing .cta-footer {
