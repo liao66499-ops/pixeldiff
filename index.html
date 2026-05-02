@@ -242,8 +242,6 @@
       .preview {
         margin-top: 12px;
         width: 100%;
-        max-height: 210px;
-        object-fit: contain;
         background: #fff;
         border: 1px solid var(--border);
         border-radius: 10px;
@@ -606,7 +604,6 @@
         align-self: center;
         height: auto;
         min-height: 400px;
-        max-height: none;
       }
 
       /* 已上传时高度随图走，短图不必维持 400px 占位高 */
@@ -620,7 +617,6 @@
 
       .workspace--report .upload-col {
         min-height: 0;
-        max-height: none;
         height: 100%;
         width: 100%;
         justify-self: stretch;
@@ -690,6 +686,7 @@
       /* 已上传：去 padding；顶部对齐，矩形高度随图片 intrinsic 变化，便于画框与 getBoundingClientRect 一致 */
       .upload-col-body:has(img.preview[src]) {
         padding: 0;
+        height: auto;
         align-items: flex-start;
         flex: 0 1 auto;
       }
@@ -1094,7 +1091,6 @@
           align-self: stretch;
           height: auto;
           min-height: 400px;
-          max-height: none;
         }
 
         .workspace--landing .upload-col:has(img.preview[src]) {
