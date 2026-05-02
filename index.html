@@ -605,11 +605,15 @@
         justify-self: center;
         align-self: center;
         height: auto;
-        min-height: 400px;
       }
 
-      /* 已上传时高度随图走，短图不必维持 400px 占位高 */
+      /* 未上传：瘦长占位；已上传：高度随图 */
+      .workspace--landing .upload-col:not(:has(img.preview[src])) {
+        min-height: 78vh;
+      }
+
       .workspace--landing .upload-col:has(img.preview[src]) {
+        height: auto;
         min-height: 0;
       }
 
@@ -1100,10 +1104,14 @@
           justify-self: stretch;
           align-self: stretch;
           height: auto;
-          min-height: 400px;
+        }
+
+        .workspace--landing .upload-col:not(:has(img.preview[src])) {
+          min-height: 78vh;
         }
 
         .workspace--landing .upload-col:has(img.preview[src]) {
+          height: auto;
           min-height: 0;
         }
 
