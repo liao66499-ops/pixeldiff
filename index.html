@@ -683,6 +683,11 @@
         padding: 80px 64px;
       }
 
+      /* 已上传预览时去掉内边距，避免 padding 裁切可视区；未上传时保持上方 padding */
+      .upload-col-body:has(img.preview[src]) {
+        padding: 0;
+      }
+
       .upload-empty {
         text-align: center;
         max-width: 100%;
