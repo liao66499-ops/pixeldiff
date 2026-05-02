@@ -858,6 +858,18 @@
         display: flex;
       }
 
+      /* 结果区无外框，与右栏白底一体 */
+      #resultPanel.report-wrap {
+        border: 0;
+        box-shadow: none;
+        outline: none;
+      }
+
+      .workspace--report #resultPanel .review-body {
+        border: 0;
+        outline: none;
+      }
+
       .review-col .error {
         flex-shrink: 0;
         margin: 0;
@@ -951,39 +963,6 @@
         transform: translateY(-1px);
       }
 
-      .review-head {
-        padding: 16px 18px;
-        border-bottom: 1px solid #f3f4f6;
-      }
-
-      .review-head .action-row {
-        justify-content: stretch;
-      }
-
-      .review-head .btn {
-        height: 48px;
-        border-radius: 10px;
-        font-size: 14px;
-      }
-
-      .review-head .btn:disabled {
-        background: #d9dde5;
-        color: #fff;
-      }
-
-      .review-head .btn-note {
-        margin-top: 8px;
-        text-align: left;
-        font-size: 12px;
-      }
-
-      .summary-line {
-        margin-top: 0;
-        font-size: 12px;
-        color: #525a66;
-        min-height: 18px;
-      }
-
       .review-body {
         flex: 1;
         overflow-y: auto;
@@ -1030,8 +1009,9 @@
       }
 
       .issue-card {
+        position: relative;
+        overflow: hidden;
         border: 0.5px solid #e5e8ef;
-        border-left: 3px solid #faad14;
         border-radius: 8px;
         padding: 12px 14px;
       }
@@ -1198,9 +1178,6 @@
             </div>
 
             <div id="resultPanel" class="report-wrap">
-              <div class="review-head">
-                <div id="result-summary" class="summary-line" style="display: none"></div>
-              </div>
               <div class="review-body">
                 <div id="statusText" class="status"></div>
 
@@ -1265,7 +1242,6 @@
       const resultPanel = document.getElementById("resultPanel");
       const statusText = document.getElementById("statusText");
       const errorBox = document.getElementById("errorBox");
-      const resultSummary = document.getElementById("result-summary");
       const issuesList = document.getElementById("issuesList");
       const loadingPanel = document.getElementById("loadingPanel");
       const loadingStep = document.getElementById("loadingStep");
@@ -1330,7 +1306,6 @@
           currentIssues = [];
           clearBboxes();
           hasReport = false;
-          resultSummary.style.display = "none";
           issuesList.innerHTML = "";
           issuesList.style.display = "none";
           loadingPanel.classList.remove("active");
@@ -1716,21 +1691,6 @@
         issuesList.style.display = "grid";
         window._lastIssues = report.issues;
         drawAllBboxes(report.issues);
-        // 有走查结果后在结果区顶部显示总览（与 issue 列表同在 #resultPanel 内、按钮上方）
-        resultSummary.style.display = "block";
-        const issueCount = Number(report.summary.total_issues ?? report.issues.length ?? 0);
-        const scoreValue = Number(report.summary.consistency_score ?? 0);
-        const severityCount = { 高: 0, 中: 0, 低: 0 };
-        report.issues.forEach((it) => {
-          if (it?.severity === "高" || it?.severity === "中" || it?.severity === "低") {
-            severityCount[it.severity]++;
-          }
-        });
-        resultSummary.innerHTML = `共 ${Number.isFinite(issueCount) ? issueCount : 0} 处差异 · 一致性 ${
-          Number.isFinite(scoreValue) ? scoreValue.toFixed(2) : "-"
-        } · <span style="color:#ff4d4f">●高 ${severityCount.高}</span> <span style="color:#fa8c16">●中 ${
-          severityCount.中
-        }</span> <span style="color:#faad14">●低 ${severityCount.低}</span>`;
 
         issuesList.innerHTML = "";
         if (!report.issues.length) {
@@ -1761,15 +1721,12 @@
                 }</div>`
               : "";
           card.innerHTML = `
-            <div class="issue-level-line" style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${sevColor.text};border-radius:8px 0 0 8px;"></div>
+            <div class="issue-level-line" style="position:absolute;left:0;top:0;width:3px;height:100%;background:${sevColor.text};border-radius:8px 0 0 8px;"></div>
             <div class="issue-head">
               <span class="badge" style="background:${issueColor};">#${escapeHtml(String(item.id ?? idx + 1))}</span>
               <span class="tag" style="background:${typeColor.bg};color:${typeColor.text};">${escapeHtml(
             String(item.type || "其他")
           )}</span>
-              <span style="font-size:11px;font-weight:500;color:${sevColor.text};">${escapeHtml(
-            String(item.severity || "-")
-          )}严重度</span>
             </div>
             <div class="issue-title">${escapeHtml(String(item.title || "未命名问题"))}</div>
             <div class="desc-line">${escapeHtml(String(item.location || "-"))} · ${escapeHtml(
@@ -1780,7 +1737,6 @@
             )}</div>
             ${bottomInfo}
           `;
-          card.style.position = "relative";
 
           issuesList.appendChild(card);
         });
