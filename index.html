@@ -875,7 +875,7 @@
         padding: 0 0 max(0px, calc((var(--cell-h) - var(--upload-rect-h)) / 2));
       }
 
-      /* 与顶栏一致：工作区右内边距 = --page-inline，按钮组贴右栏内缘 → 局部走查右缘到视口右 ≈ L 头像右缘到视口右 */
+      /* 与顶栏大致对齐后再整体左移 20px */
       .workspace--landing .cta-btn-row {
         display: flex;
         flex-direction: row;
@@ -885,7 +885,7 @@
         align-items: center;
         width: auto;
         align-self: flex-end;
-        margin-right: 0;
+        margin-right: 20px;
       }
 
       .workspace--report .cta-footer {
