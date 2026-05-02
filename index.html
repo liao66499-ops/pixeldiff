@@ -864,7 +864,7 @@
 
       .workspace--landing .cta-footer {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-end;
         justify-content: flex-end;
         gap: 0;
         width: 100%;
@@ -874,6 +874,7 @@
         padding: 0 0 max(0px, calc((var(--cell-h) - var(--upload-rect-h)) / 2));
       }
 
+      /* width:auto + 父级 align-items:flex-end，margin-right 才会把整组按钮向左挪出可视右边距 */
       .workspace--landing .cta-btn-row {
         display: flex;
         flex-direction: row;
@@ -881,9 +882,10 @@
         gap: 12px;
         justify-content: flex-end;
         align-items: center;
-        width: 100%;
-        /* 与左侧设计稿到页面左缘距离一致（:root --page-inline） */
-        margin-right: var(--page-inline);
+        width: auto;
+        align-self: flex-end;
+        /* 与视口右边距目标 90px：减去 workspace 已有右内边距 --page-inline */
+        margin-right: max(0px, calc(90px - var(--page-inline)));
       }
 
       .workspace--report .cta-footer {
