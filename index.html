@@ -563,13 +563,18 @@
       }
 
       .workspace--landing {
+        --workspace-inline: 64px;
         grid-template-columns: 35% 35% 30%;
-        padding: 48px 64px 56px;
+        padding: 48px var(--workspace-inline) 56px;
+        column-gap: calc(var(--workspace-inline) / 2);
+        row-gap: 0;
       }
 
       .workspace--report {
         grid-template-columns: 30% 30% 40%;
         padding: 16px;
+        column-gap: 0;
+        row-gap: 0;
       }
 
       /* 初始态与设计稿一致：栏间无竖线；走查后保留轻分隔 */
@@ -616,13 +621,13 @@
       }
 
       .design-col {
-        background: #f0f9ff;
-        border-color: #dbeafe;
+        background: #f6faff;
+        border: 2px dashed #b4d3ff;
       }
 
       .dev-col {
-        background: #fff7ed;
-        border-color: #fed7aa;
+        background: #fef8f7;
+        border: 2px dashed #ffccc2;
       }
 
       .mini-reupload {
@@ -799,20 +804,13 @@
         color: #6b7280;
       }
 
-      .hint-line3 {
-        margin: 0;
-        font-size: 15px;
-        line-height: 1.75;
-        color: #6b7280;
-      }
-
       .hint-gradient {
         font-weight: 600;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        -webkit-text-fill-color: transparent;
+        color: #3377ff;
+        background: none;
+        -webkit-background-clip: unset;
+        background-clip: unset;
+        -webkit-text-fill-color: currentColor;
       }
 
       .report-wrap {
@@ -1062,6 +1060,12 @@
           padding: 24px 20px;
         }
 
+        .workspace--landing {
+          --workspace-inline: 20px;
+          column-gap: 0;
+          row-gap: calc(var(--workspace-inline) / 2);
+        }
+
         .workspace--landing > .work-col:not(:last-child),
         .workspace--report > .work-col:not(:last-child) {
           border-right: none;
@@ -1161,8 +1165,9 @@
 
             <div id="actionHints" class="action-hints">
               <p class="hint-line1">为确保对比准确</p>
-              <p class="hint-line2">请上传<span class="hint-gradient">相同尺寸</span>的</p>
-              <p class="hint-line3">设计稿和开发稿</p>
+              <p class="hint-line2">
+                请上传<span class="hint-gradient">相同尺寸</span>的设计稿和开发稿
+              </p>
             </div>
 
             <div id="reportWrap" class="report-wrap">
