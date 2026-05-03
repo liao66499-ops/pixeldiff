@@ -118,17 +118,74 @@
         color: #111827;
       }
 
-      .avatar {
-        width: 26px;
-        height: 26px;
+      .author-wrapper {
+        position: relative;
+      }
+
+      .author-avatar {
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        background: #d9dee7;
-        color: #4f5968;
-        display: inline-flex;
+        background: #10b981;
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        transition: transform 0.15s;
+      }
+
+      .author-avatar:hover {
+        transform: scale(1.05);
+      }
+
+      .author-popover {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        width: 320px;
+        background: white;
+        border-radius: 16px;
+        padding: 28px 32px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+        z-index: 1000;
+        animation: popoverFadeIn 0.18s ease-out;
+      }
+
+      @keyframes popoverFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .author-row {
+        display: flex;
+        align-items: center;
+        padding: 10px 0;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .author-label {
+        color: #1f2937;
         font-weight: 500;
+        min-width: 56px;
+        margin-right: 4px;
+      }
+
+      .author-value {
+        color: #1f2937;
+        font-weight: 400;
+        user-select: text;
+        cursor: text;
       }
 
       /* Hero 文案区 */
@@ -1432,7 +1489,33 @@
               onclick="openHistoryDrawer(); return false;"
               style="cursor: pointer"
               >历史记录</a>
-            <span class="avatar">L</span>
+            <div class="author-wrapper">
+              <button
+                type="button"
+                id="authorBtn"
+                class="author-avatar"
+                onclick="toggleAuthorPopover(event)"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-controls="authorPopover"
+              >
+                L
+              </button>
+              <div id="authorPopover" class="author-popover" style="display: none" role="dialog" aria-label="作者信息">
+                <div class="author-row">
+                  <span class="author-label">作者:</span>
+                  <span class="author-value">李翱</span>
+                </div>
+                <div class="author-row">
+                  <span class="author-label">微信:</span>
+                  <span class="author-value">LA2732794492</span>
+                </div>
+                <div class="author-row">
+                  <span class="author-label">邮箱:</span>
+                  <span class="author-value">15269041879@163.com</span>
+                </div>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -2868,6 +2951,42 @@
         },
         { passive: true }
       );
+
+      function toggleAuthorPopover(event) {
+        event.stopPropagation();
+        const popover = document.getElementById("authorPopover");
+        const btn = document.getElementById("authorBtn");
+        if (!popover) return;
+        const isHidden = popover.style.display === "none" || !popover.style.display;
+        const next = isHidden ? "block" : "none";
+        popover.style.display = next;
+        if (btn) btn.setAttribute("aria-expanded", next === "block" ? "true" : "false");
+      }
+      window.toggleAuthorPopover = toggleAuthorPopover;
+
+      document.addEventListener("click", (event) => {
+        const popover = document.getElementById("authorPopover");
+        const wrapper = document.querySelector(".author-wrapper");
+        if (
+          popover &&
+          wrapper &&
+          popover.style.display === "block" &&
+          !wrapper.contains(event.target)
+        ) {
+          popover.style.display = "none";
+          const btn = document.getElementById("authorBtn");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          const popover = document.getElementById("authorPopover");
+          if (popover) popover.style.display = "none";
+          const btn = document.getElementById("authorBtn");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+      });
 
       setupPartialOverlays();
       updateUploadState();
