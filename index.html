@@ -118,20 +118,15 @@
         color: #111827;
       }
 
-      .author-wrapper {
-        position: relative;
-      }
-
       .author-avatar {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: #10b981;
-        color: white;
-        font-size: 13px;
-        font-weight: 500;
+        background: transparent;
         border: none;
+        padding: 0;
         cursor: pointer;
+        overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -139,7 +134,14 @@
       }
 
       .author-avatar:hover {
-        transform: scale(1.05);
+        transform: scale(1.08);
+      }
+
+      .author-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
       }
 
       .author-popover {
@@ -150,7 +152,7 @@
         background: white;
         border-radius: 16px;
         padding: 28px 32px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
         z-index: 1000;
         animation: popoverFadeIn 0.18s ease-out;
       }
@@ -1489,17 +1491,15 @@
               onclick="openHistoryDrawer(); return false;"
               style="cursor: pointer"
               >历史记录</a>
-            <div class="author-wrapper">
+            <div class="author-wrapper" style="position: relative; display: inline-block;">
               <button
                 type="button"
                 id="authorBtn"
                 class="author-avatar"
                 onclick="toggleAuthorPopover(event)"
-                aria-expanded="false"
-                aria-haspopup="true"
-                aria-controls="authorPopover"
+                aria-label="查看作者信息"
               >
-                L
+                <img src="author-avatar.png" alt="作者头像" />
               </button>
               <div id="authorPopover" class="author-popover" style="display: none" role="dialog" aria-label="作者信息">
                 <div class="author-row">
@@ -2955,12 +2955,12 @@
       function toggleAuthorPopover(event) {
         event.stopPropagation();
         const popover = document.getElementById("authorPopover");
-        const btn = document.getElementById("authorBtn");
         if (!popover) return;
-        const isHidden = popover.style.display === "none" || !popover.style.display;
-        const next = isHidden ? "block" : "none";
-        popover.style.display = next;
-        if (btn) btn.setAttribute("aria-expanded", next === "block" ? "true" : "false");
+        if (popover.style.display === "none" || !popover.style.display) {
+          popover.style.display = "block";
+        } else {
+          popover.style.display = "none";
+        }
       }
       window.toggleAuthorPopover = toggleAuthorPopover;
 
@@ -2969,13 +2969,11 @@
         const wrapper = document.querySelector(".author-wrapper");
         if (
           popover &&
-          wrapper &&
           popover.style.display === "block" &&
+          wrapper &&
           !wrapper.contains(event.target)
         ) {
           popover.style.display = "none";
-          const btn = document.getElementById("authorBtn");
-          if (btn) btn.setAttribute("aria-expanded", "false");
         }
       });
 
@@ -2983,8 +2981,6 @@
         if (event.key === "Escape") {
           const popover = document.getElementById("authorPopover");
           if (popover) popover.style.display = "none";
-          const btn = document.getElementById("authorBtn");
-          if (btn) btn.setAttribute("aria-expanded", "false");
         }
       });
 
