@@ -1028,6 +1028,11 @@
         margin-right: 40px;
       }
 
+      /* 局部走查：取消 + 开始局部分析 显示时，底部按钮组整体左移 30px */
+      .workspace--landing .cta-btn-row:has(#btnPartialCancel[style*="block"]) {
+        margin-right: 70px;
+      }
+
       /* 与开始页一致：PNG 横向并排、固定宽度，贴右栏底，不占满栏宽 */
       .workspace--report .cta-footer {
         flex-direction: column;
