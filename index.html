@@ -1329,6 +1329,29 @@
         font-size: 13px;
         color: #6b7280;
         margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .history-mode-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        margin-left: 8px;
+      }
+
+      .history-mode-badge.partial {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .history-mode-badge.global {
+        background: #f3f4f6;
+        color: #6b7280;
       }
 
       .history-item-stats {
@@ -1845,7 +1868,6 @@
                 id: String(Date.now()),
                 timestamp: Date.now(),
                 date: new Date().toLocaleString("zh-CN"),
-                mode: "partial",
                 designThumb,
                 devThumb,
                 designFull,
@@ -1856,6 +1878,9 @@
                 midCount: severityCount.中,
                 lowCount: severityCount.低,
                 report: JSON.parse(JSON.stringify(mapped)),
+                mode: "partial",
+                designBbox: JSON.parse(JSON.stringify(regionD)),
+                devBbox: JSON.parse(JSON.stringify(regionV)),
               };
               saveToHistory(record);
             } catch (err) {
@@ -1875,6 +1900,27 @@
           document.querySelectorAll(".bbox-overlay").forEach((el) => el.classList.add("active"));
           updateHint();
         }
+      }
+
+      function renderAnalyzedBboxes() {
+        document.querySelectorAll(".bbox-overlay .partial-bbox").forEach((el) => el.remove());
+        const db = designBbox;
+        const vb = devBbox;
+        if (!db || !vb) return;
+        const appendBox = (overlay, bbox) => {
+          if (!overlay || !bbox) return;
+          const r = overlay.getBoundingClientRect();
+          if (!r.width || !r.height) return;
+          const el = document.createElement("div");
+          el.className = "partial-bbox analyzed";
+          el.style.left = bbox.x * r.width + "px";
+          el.style.top = bbox.y * r.height + "px";
+          el.style.width = bbox.w * r.width + "px";
+          el.style.height = bbox.h * r.height + "px";
+          overlay.appendChild(el);
+        };
+        appendBox(document.querySelector('.bbox-overlay[data-target="design"]'), db);
+        appendBox(document.querySelector('.bbox-overlay[data-target="dev"]'), vb);
       }
 
       function setupPartialOverlays() {
@@ -2653,6 +2699,17 @@
         renderReport(rec.report);
         syncLayerToImage("designPreview", "designBboxLayer");
         syncLayerToImage("actualPreview", "actualBboxLayer");
+        if (rec.mode === "partial" && rec.designBbox && rec.devBbox) {
+          designBbox = JSON.parse(JSON.stringify(rec.designBbox));
+          devBbox = JSON.parse(JSON.stringify(rec.devBbox));
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => renderAnalyzedBboxes());
+          });
+        } else {
+          designBbox = null;
+          devBbox = null;
+          document.querySelectorAll(".partial-bbox").forEach((el) => el.remove());
+        }
         updateButtonState();
       }
 
@@ -2678,13 +2735,17 @@
             const hi = Number(rec.highCount) || 0;
             const mid = Number(rec.midCount) || 0;
             const lo = Number(rec.lowCount) || 0;
+            const modeBadge =
+              rec.mode === "partial"
+                ? '<span class="history-mode-badge partial">局部</span>'
+                : '<span class="history-mode-badge global">全局</span>';
             return `<div class="history-item" data-id="${safeId}">
               <div class="history-item-thumbs">
                 <img src="${dThumb}" alt="" />
                 <img src="${vThumb}" alt="" />
               </div>
               <div class="history-item-info">
-                <div class="history-item-date">${dateStr}</div>
+                <div class="history-item-date">${dateStr}${modeBadge}</div>
                 <div class="history-item-stats">${diffN} 处差异 · 一致性 ${cons}</div>
                 <div class="history-item-badges">
                   <span class="history-badge-high">●高 ${hi}</span>
@@ -2734,6 +2795,15 @@
         window._lastIssues = null;
         updateUploadState();
         window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+
+        partialState = "idle";
+        designBbox = null;
+        devBbox = null;
+        document.querySelectorAll(".partial-bbox").forEach((el) => el.remove());
+        document.getElementById("btnPartialCancel").style.display = "none";
+        document.getElementById("btnPartialStart").style.display = "none";
+        document.getElementById("partialHint").style.display = "none";
+        document.querySelectorAll(".bbox-overlay").forEach((el) => el.classList.remove("active"));
       }
 
       window.handleReuploadMainClick = handleReuploadMainClick;
