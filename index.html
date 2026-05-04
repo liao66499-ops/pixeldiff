@@ -1064,6 +1064,11 @@
         margin-right: 80px;
       }
 
+      /* 局部分析中仅「分析中...」单按钮：相对当前位置再左移 50px（整页走查 loading 双图按钮不受影响） */
+      .workspace--report .result.is-dimmed #btnPartialStart[style*="block"] {
+        margin-right: 50px;
+      }
+
       .workspace--report .action-btn {
         width: 180px;
         height: auto;
