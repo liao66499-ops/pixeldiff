@@ -1684,13 +1684,7 @@
               </svg>
             </button>
             <div class="tutorial-modal-video-wrap">
-              <video
-                id="tutorialVideo"
-                src="tutorial.mp4"
-                controls
-                autoplay
-                playsinline
-              ></video>
+              <div id="videoContainer"></div>
             </div>
           </div>
         </div>
@@ -3166,11 +3160,18 @@
 
       function openTutorialModal() {
         const modal = document.getElementById("tutorialModal");
-        const video = document.getElementById("tutorialVideo");
+        const videoContainer = document.getElementById("videoContainer");
         if (!modal) return;
+        if (videoContainer && !videoContainer.querySelector("video")) {
+          videoContainer.innerHTML =
+            '<video id="tutorialVideo" controls muted playsinline preload="none">' +
+            '<source src="tutorial.mp4" type="video/mp4">' +
+            "</video>";
+        }
         modal.classList.add("is-open");
         modal.setAttribute("aria-hidden", "false");
         document.body.classList.add("tutorial-modal-open");
+        const video = document.getElementById("tutorialVideo");
         if (video) {
           video.play().catch(function () {});
         }
@@ -3178,14 +3179,14 @@
 
       function closeTutorialModal() {
         const modal = document.getElementById("tutorialModal");
-        const video = document.getElementById("tutorialVideo");
+        const videoContainer = document.getElementById("videoContainer");
         if (!modal || !modal.classList.contains("is-open")) return;
+        if (videoContainer) {
+          videoContainer.innerHTML = "";
+        }
         modal.classList.remove("is-open");
         modal.setAttribute("aria-hidden", "true");
         document.body.classList.remove("tutorial-modal-open");
-        if (video) {
-          video.pause();
-        }
       }
 
       setupPartialOverlays();
