@@ -699,6 +699,14 @@
       /* 未上传：瘦长占位；已上传：高度随图 */
       .workspace--landing .upload-col:not(:has(img.preview[src])) {
         min-height: 78vh;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .workspace--landing .upload-col:not(:has(img.preview[src])) .upload-col-body {
+        flex: 0 1 auto;
+        justify-content: center;
+        align-items: center;
       }
 
       .workspace--landing .upload-col:has(img.preview[src]) {
@@ -957,12 +965,17 @@
 
       .workspace--landing .action-hints {
         flex: 1 1 auto;
-        min-height: 0;
+        min-height: 78vh;
         width: 100%;
         max-width: none;
         margin: 0;
-        padding: 0 var(--page-inline);
+        padding: 40px 32px;
         justify-content: center;
+        align-self: stretch;
+        background: #f5f7fa;
+        border: 1.5px dashed #b4d3ff;
+        border-radius: 8px;
+        box-sizing: border-box;
       }
 
       .action-hints.is-hidden {
