@@ -572,20 +572,14 @@
       .loading-spinner-lg-ring {
         position: absolute;
         inset: 0;
-        border: none;
+        background: none !important;
+        -webkit-mask: none !important;
+        mask: none !important;
+        border: 3px solid transparent;
+        border-top-color: #37b6ff;
+        border-right-color: #8f88ff;
         border-radius: 50%;
-        background: conic-gradient(
-          from 0deg,
-          #7a90ff 3%,
-          #00f6ff 33%,
-          #00b7ff 58%,
-          #d4a7ff 87%,
-          #ff77bb 94%,
-          #7a90ff 100%
-        );
-        -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
-        mask: radial-gradient(circle, transparent 60%, black 62%);
-        animation: ai-spin 2s linear infinite;
+        animation: ai-spin 1.2s linear infinite;
         transform-origin: center center;
       }
 
@@ -607,13 +601,18 @@
       }
 
       .loading-title {
+        display: inline-block;
+        width: fit-content;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
         font-size: 20px;
         font-weight: 500;
         line-height: 20px;
         margin-bottom: 8px;
-        opacity: 1;
+        opacity: 1 !important;
         background: linear-gradient(
-          135deg,
+          90deg,
           #37b6ff 0%,
           #8f88ff 50%,
           #fb83ff 100%
