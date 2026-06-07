@@ -558,24 +558,64 @@
       }
 
       .loading-spinner-lg {
-        width: 36px;
-        height: 36px;
-        border: 4px solid #d8e9ff;
-        border-top-color: var(--primary);
-        border-radius: 50%;
+        position: relative;
+        width: 40px;
+        height: 40px;
         margin: 0 auto 14px;
-        animation: spin 0.9s linear infinite;
+      }
+
+      .loading-spinner-lg::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        padding: 2px;
+        background: linear-gradient(
+          151.79deg,
+          #37b6ff 23.73%,
+          #8f88ff 71.92%,
+          #fb83ff 120.26%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        animation: spin 2s linear infinite;
+      }
+
+      .loading-spinner-lg::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 24px;
+        height: 24px;
+        transform: translate(-50%, -50%);
+        background: url("https://www.figma.com/api/mcp/asset/799ef444-ab48-4d74-8460-9d162dd79820")
+          center / contain no-repeat;
       }
 
       .loading-title {
-        font-size: 18px;
-        font-weight: 500;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 20px;
         margin-bottom: 8px;
+        background: linear-gradient(
+          151.79deg,
+          #37b6ff 23.73%,
+          #8f88ff 71.92%,
+          #fb83ff 120.26%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
       }
 
       .loading-subtitle {
-        font-size: 14px;
-        color: var(--sub-text);
+        font-size: 13.5px;
+        line-height: 13.5px;
+        color: #5c6373;
         margin-bottom: 12px;
       }
 
