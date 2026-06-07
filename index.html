@@ -572,13 +572,20 @@
       .loading-spinner-lg-ring {
         position: absolute;
         inset: 0;
-        background: none !important;
-        -webkit-mask: none !important;
-        mask: none !important;
-        border: 3px solid transparent;
-        border-top-color: #37b6ff;
-        border-right-color: #8f88ff;
+        border: none !important;
         border-radius: 50%;
+        background: conic-gradient(
+          from 0deg,
+          #7a90ff 0deg,
+          #00f6ff 25deg,
+          #00b7ff 50deg,
+          #d4a7ff 75deg,
+          #ff77bb 90deg,
+          transparent 90deg,
+          transparent 360deg
+        );
+        -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
+        mask: radial-gradient(circle, transparent 60%, black 62%);
         animation: ai-spin 1.2s linear infinite;
         transform-origin: center center;
       }
