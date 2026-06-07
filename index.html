@@ -455,6 +455,11 @@
         opacity: 0.45;
       }
 
+      /* 走查 loading 时保持右侧 loading 区全不透明，避免渐变文字被父级 opacity 冲淡 */
+      .result.is-dimmed:has(.loading-panel.active) {
+        opacity: 1;
+      }
+
       .summary {
         display: grid;
         grid-template-columns: repeat(2, minmax(140px, 1fr));
@@ -564,28 +569,18 @@
         margin: 0 auto 14px;
       }
 
-      .loading-spinner-lg::before {
-        content: "";
+      .loading-spinner-lg-ring {
         position: absolute;
         inset: 0;
         border-radius: 50%;
-        padding: 2px;
-        background: linear-gradient(
-          151.79deg,
-          #37b6ff 23.73%,
-          #8f88ff 71.92%,
-          #fb83ff 120.26%
-        );
-        -webkit-mask: linear-gradient(#fff 0 0) content-box,
-          linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask-composite: exclude;
-        animation: spin 2s linear infinite;
+        border: 2px solid rgba(122, 144, 255, 0.28);
+        border-top-color: #3b82f6;
+        border-right-color: #8b5cf6;
+        animation: ai-spin 2s linear infinite;
+        transform-origin: center center;
       }
 
-      .loading-spinner-lg::after {
-        content: "";
+      .loading-spinner-lg-star {
         position: absolute;
         left: 50%;
         top: 50%;
@@ -596,19 +591,25 @@
           center / contain no-repeat;
       }
 
+      @keyframes ai-spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
       .loading-title {
         font-size: 20px;
-        font-weight: 600;
+        font-weight: 500;
         line-height: 20px;
         margin-bottom: 8px;
-        background: linear-gradient(
-          151.79deg,
-          #37b6ff 23.73%,
-          #8f88ff 71.92%,
-          #fb83ff 120.26%
-        );
+        opacity: 1;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
         -webkit-background-clip: text;
         background-clip: text;
+        -webkit-text-fill-color: transparent;
         color: transparent;
       }
 
@@ -1786,7 +1787,10 @@
                 <div id="statusText" class="status"></div>
 
                 <div id="loadingPanel" class="loading-panel">
-                  <div class="loading-spinner-lg"></div>
+                  <div class="loading-spinner-lg">
+                    <span class="loading-spinner-lg-ring" aria-hidden="true"></span>
+                    <span class="loading-spinner-lg-star" aria-hidden="true"></span>
+                  </div>
                   <div class="loading-title">AI 正在分析两张图...</div>
                   <div class="loading-subtitle">通常需要 10-30 秒，请耐心等待</div>
                   <div id="loadingStep" class="loading-step">正在上传图片...</div>
