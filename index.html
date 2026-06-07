@@ -34,7 +34,7 @@
         margin: 0;
         padding: 0;
         min-height: 100%;
-        font-family: Inter, "Source Han Sans SC", "PingFang SC", "Microsoft YaHei",
+        font-family: "PingFang SC", Inter, "Source Han Sans SC", "Microsoft YaHei",
           sans-serif;
         color: var(--text);
         background: #ffffff;
@@ -70,9 +70,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 var(--page-inline);
-        border-bottom: 1px solid #f3f4f6;
-        background: #ffffff;
+        padding: 20px 80px;
+        border-bottom: 0.5px solid #e0e2ec;
+        background: #fcfcfd;
       }
 
       /* 走查后主区内边距为 16px，导航与之对齐 */
@@ -660,7 +660,7 @@
 
       .workspace--landing {
         grid-template-columns: 35% 35% 30%;
-        padding: 55px var(--page-inline) 56px;
+        padding: 55px 80px 56px;
         column-gap: 40px;
         row-gap: 0;
       }
@@ -690,7 +690,7 @@
 
       /* 设计稿与导航左缘对齐；开发稿仍在列内居中 */
       .workspace--landing .upload-col {
-        width: min(100%, 620px);
+        width: min(100%, 400px);
         justify-self: center;
         align-self: center;
         height: auto;
@@ -698,7 +698,7 @@
 
       /* 未上传：瘦长占位；已上传：高度随图 */
       .workspace--landing .upload-col:not(:has(img.preview[src])) {
-        min-height: 78vh;
+        min-height: 626px;
         justify-content: center;
         align-items: center;
       }
@@ -728,7 +728,7 @@
 
       /* 左中两栏上传区 */
       .upload-col {
-        border: 0.5px dashed;
+        border: 0.563px dashed transparent;
         border-radius: 8px;
         min-height: 0;
         display: flex;
@@ -739,14 +739,24 @@
         align-self: stretch;
       }
 
+      .upload-col.design-col {
+        background: #f6faff;
+        border-color: #b4d3ff;
+      }
+
+      .upload-col.dev-col {
+        background: #fef8f7;
+        border-color: #ffccc2;
+      }
+
       .design-col {
         background: #f6faff;
-        border: 0.5px dashed #b4d3ff;
+        border: 0.563px dashed #b4d3ff;
       }
 
       .dev-col {
         background: #fef8f7;
-        border: 0.5px dashed #ffccc2;
+        border: 0.563px dashed #ffccc2;
       }
 
       .upload-col-body {
@@ -795,27 +805,37 @@
       }
 
       .upload-hero-title {
-        margin: 28px 0 0;
+        margin: 39px 0 0;
         font-size: 20px;
         font-weight: 500;
-        color: #111827;
-        line-height: 1.4;
+        color: #5c6373;
+        line-height: 18px;
+        text-align: center;
+      }
+
+      .upload-hero-title .upload-hero-highlight--design {
+        color: #3377ff;
+      }
+
+      .upload-hero-title .upload-hero-highlight--dev {
+        color: #ff5c4d;
       }
 
       .upload-hero-highlight--design {
-        color: #3b82f6;
+        color: #3377ff;
       }
 
       .upload-hero-highlight--dev {
-        color: #f97316;
+        color: #ff5c4d;
       }
 
       .upload-hero-desc {
         margin: 14px 0 0;
         font-size: 13.5px;
         font-weight: 400;
-        color: #6b7280;
-        line-height: 16px;
+        color: #5c6373;
+        line-height: 11.25px;
+        text-align: center;
       }
 
       /* 隐藏原生 file input，避免出现“未选择任何文件”原生按钮 */
@@ -964,16 +984,16 @@
       }
 
       .workspace--landing .action-hints {
-        flex: 1 1 auto;
-        min-height: 78vh;
+        flex: 0 0 auto;
+        min-height: 541px;
         width: 100%;
-        max-width: none;
+        max-width: 400px;
         margin: 0;
         padding: 40px 32px;
         justify-content: center;
         align-self: stretch;
         background: #f5f7fa;
-        border: 1.5px dashed #b4d3ff;
+        border: 0.563px dashed #b4d3ff;
         border-radius: 8px;
         box-sizing: border-box;
       }
@@ -987,7 +1007,7 @@
         font-size: 18px;
         font-weight: 400;
         line-height: 28px;
-        color: #1f2937;
+        color: #000000;
         text-align: center;
       }
 
@@ -996,7 +1016,7 @@
         font-size: 18px;
         font-weight: 400;
         line-height: 28px;
-        color: #1f2937;
+        color: #000000;
         text-align: center;
       }
 
@@ -1065,12 +1085,13 @@
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 25px;
         justify-content: flex-end;
         align-items: center;
         width: auto;
         align-self: flex-end;
-        margin-right: 40px;
+        margin-right: 0;
+        opacity: 0.5;
       }
 
       /* 局部走查：取消 + 开始局部分析 显示时，底部按钮组整体左移 40px（相对默认 40px 右留白） */
@@ -1157,6 +1178,8 @@
         width: 188px;
         height: 60px;
         max-width: 100%;
+        border-radius: 8px;
+        opacity: 1;
       }
 
       .action-btn:not(.disabled) {
