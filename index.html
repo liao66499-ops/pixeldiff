@@ -572,10 +572,19 @@
       .loading-spinner-lg-ring {
         position: absolute;
         inset: 0;
+        border: none;
         border-radius: 50%;
-        border: 2px solid rgba(122, 144, 255, 0.28);
-        border-top-color: #3b82f6;
-        border-right-color: #8b5cf6;
+        background: conic-gradient(
+          from 0deg,
+          #7a90ff 3%,
+          #00f6ff 33%,
+          #00b7ff 58%,
+          #d4a7ff 87%,
+          #ff77bb 94%,
+          #7a90ff 100%
+        );
+        -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
+        mask: radial-gradient(circle, transparent 60%, black 62%);
         animation: ai-spin 2s linear infinite;
         transform-origin: center center;
       }
@@ -592,9 +601,6 @@
       }
 
       @keyframes ai-spin {
-        from {
-          transform: rotate(0deg);
-        }
         to {
           transform: rotate(360deg);
         }
@@ -606,7 +612,12 @@
         line-height: 20px;
         margin-bottom: 8px;
         opacity: 1;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        background: linear-gradient(
+          135deg,
+          #37b6ff 0%,
+          #8f88ff 50%,
+          #fb83ff 100%
+        );
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
