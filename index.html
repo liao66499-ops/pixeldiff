@@ -22,6 +22,12 @@
         --page-inline: 64px;
       }
 
+      @property --angle {
+        syntax: "<angle>";
+        initial-value: 0deg;
+        inherits: false;
+      }
+
       * {
         box-sizing: border-box;
       }
@@ -575,19 +581,17 @@
         border: none !important;
         border-radius: 50%;
         background: conic-gradient(
-          from 0deg,
-          #7a90ff 0deg,
-          #00f6ff 25deg,
-          #00b7ff 50deg,
-          #d4a7ff 75deg,
-          #ff77bb 90deg,
-          transparent 90deg,
-          transparent 360deg
+          from var(--angle, 0deg),
+          #7a90ff 0%,
+          #00f6ff 25%,
+          #00b7ff 50%,
+          #d4a7ff 75%,
+          #ff77bb 95%,
+          #7a90ff 100%
         );
         -webkit-mask: radial-gradient(circle, transparent 60%, black 62%);
         mask: radial-gradient(circle, transparent 60%, black 62%);
-        animation: ai-spin 1.2s linear infinite;
-        transform-origin: center center;
+        animation: ai-color-flow 3s linear infinite;
       }
 
       .loading-spinner-lg-star {
@@ -601,9 +605,9 @@
           center / contain no-repeat;
       }
 
-      @keyframes ai-spin {
+      @keyframes ai-color-flow {
         to {
-          transform: rotate(360deg);
+          --angle: 360deg;
         }
       }
 
